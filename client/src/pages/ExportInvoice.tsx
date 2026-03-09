@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Share2, ArrowLeft, Printer, Mail, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 

@@ -29,9 +29,9 @@ export default function Layout({ children }: { children: ReactNode }) {
             const isActive = location === item.href || (item.href === "/" && location.startsWith("/export"));
             return (
               <Link key={item.href} href={item.href}>
-                <a
+                <div
                   data-testid={`nav-link-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer ${
                     isActive 
                       ? "bg-primary/10 text-primary font-medium" 
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 >
                   <Icon className="w-5 h-5" />
                   {item.label}
-                </a>
+                </div>
               </Link>
             );
           })}
@@ -60,10 +60,10 @@ export default function Layout({ children }: { children: ReactNode }) {
             const isActive = location === item.href;
             return (
               <Link key={item.href} href={item.href}>
-                <a className={`flex flex-col items-center p-2 ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                <div className={`flex flex-col items-center p-2 cursor-pointer ${isActive ? "text-primary" : "text-muted-foreground"}`}>
                   <Icon className="w-6 h-6" />
                   <span className="text-[10px] mt-1 font-medium">{item.label}</span>
-                </a>
+                </div>
               </Link>
             );
           })}
