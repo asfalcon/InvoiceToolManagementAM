@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { Plus, Search, Filter, Download, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Filter, Download, MoreHorizontal, Users, Euro } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useLocation } from "wouter";
 
 // Mock data to simulate the database
 const MOCK_INVOICES = [
@@ -31,14 +31,13 @@ const getStatusColor = (status: string) => {
 
 export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [, setLocation] = useLocation();
 
   const filteredInvoices = MOCK_INVOICES.filter(
     inv => 
       inv.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inv.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const totalAmount = MOCK_INVOICES.reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -47,33 +46,16 @@ export default function InvoicesList() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Registro de Facturas</h1>
           <p className="text-muted-foreground mt-1">Gestiona y visualiza todas tus facturas emitidas.</p>
         </div>
-        <Link href="/create">
-          <Button data-testid="btn-new-invoice" className="gap-2 shadow-sm">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setLocation("/dashboard")} className="gap-2">
+            <Users className="w-4 h-4" />
+            Dashboard
+          </Button>
+          <Button onClick={() => setLocation("/create")} className="gap-2 shadow-sm">
             <Plus className="w-4 h-4" />
             Nueva Factura
           </Button>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="shadow-sm border-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Total Facturado</CardDescription>
-            <CardTitle className="text-2xl">${totalAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="shadow-sm border-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Facturas Pendientes</CardDescription>
-            <CardTitle className="text-2xl">{MOCK_INVOICES.filter(i => i.status === 'pendiente').length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="shadow-sm border-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Facturas Vencidas</CardDescription>
-            <CardTitle className="text-2xl text-rose-600">{MOCK_INVOICES.filter(i => i.status === 'vencida').length}</CardTitle>
-          </CardHeader>
-        </Card>
+        </div>
       </div>
 
       <Card className="border-none shadow-sm bg-white overflow-hidden">
@@ -120,7 +102,7 @@ export default function InvoicesList() {
                     <TableCell>{invoice.client}</TableCell>
                     <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES')}</TableCell>
                     <TableCell className="text-right font-medium">
-                      ${invoice.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                      {invoice.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`capitalize ${getStatusColor(invoice.status)}`}>
@@ -136,8 +118,8 @@ export default function InvoicesList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setLocation(`/export/${invoice.id}`)}>Exportar PDF</DropdownMenuItem>
                           <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-                          <DropdownMenuItem>Descargar PDF</DropdownMenuItem>
                           <DropdownMenuItem className="text-primary">Marcar pagada</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

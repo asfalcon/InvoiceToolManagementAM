@@ -1,13 +1,15 @@
 import { Link, useLocation } from "wouter";
-import { FileText, PlusCircle, LayoutDashboard, Settings } from "lucide-react";
+import { FileText, PlusCircle, LayoutDashboard, Users, Settings, Share2 } from "lucide-react";
 import { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
 
   const navItems = [
+    { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
     { href: "/", label: "Facturas", icon: FileText },
     { href: "/create", label: "Nueva Factura", icon: PlusCircle },
+    { href: "/clients", label: "Clientes", icon: Users },
   ];
 
   return (
@@ -24,7 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.href;
+            const isActive = location === item.href || (item.href === "/" && location.startsWith("/export"));
             return (
               <Link key={item.href} href={item.href}>
                 <a
