@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Save, X, Plus, Trash2, ArrowLeft, FileText } from "lucide-react";
+import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,39 +9,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-
-type InvoiceItem = {
-  id: string;
-  description: string;
-  quantity: number;
-  price: number;
-};
-
-const RECURRING_SERVICES = [
-  { label: "Mantenimiento Mensual", price: 150, description: "Servicio de mantenimiento técnico mensual" },
-  { label: "Consultoría IT", price: 80, description: "Hora de consultoría tecnológica" },
-  { label: "Desarrollo Web", price: 1200, description: "Desarrollo de nuevas funcionalidades web" },
-  { label: "Hosting Anual", price: 200, description: "Alojamiento web y dominio anual" },
-];
-
-const MOCK_CLIENTS = [
-  { id: "acme", name: "Acme Corp", nif: "B12345678", email: "facturas@acme.com", address: "Polígono Ind. s/n", customRates: { "Consultoría IT": 75 } },
-  { id: "globex", name: "Globex Inc", nif: "A87654321", email: "billing@globex.com", address: "Main St 456", customRates: {} },
-];
+import { useSettings } from "@/hooks/useSettings";
+import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
+import { InvoiceItem } from "@/types";
 
 export default function CreateInvoice() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+  const { services, clients } = useSettings();
+
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [items, setItems] = useState<InvoiceItem[]>([
-    { id: "1", description: "", quantity: 1, price: 0 }
+    { id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }
   ]);
-  
-  const selectedClient = MOCK_CLIENTS.find(c => c.id === selectedClientId);
+  const [discount, setDiscount] = useState(0);
+
+  const selectedClient = clients.find(c => c.id === selectedClientId);
 
   const addItem = () => {
-    setItems([...items, { id: Math.random().toString(36).substring(7), description: "", quantity: 1, price: 0 }]);
+    setItems([...items, { 
+      id: Math.random().toString(36).substring(7), 
+      description: "", 
+      quantity: 1, 
+      basePrice: 0, 
+      taxIncrement: 0 
+    }]);
   };
 
   const removeItem = (id: string) => {
@@ -54,51 +46,55 @@ export default function CreateInvoice() {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
-  const applyServiceTemplate = (itemId: string, serviceLabel: string) => {
-    const service = RECURRING_SERVICES.find(s => s.label === serviceLabel);
+  const applyService = (itemId: string, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
     if (service) {
-      const price = selectedClient?.customRates?.[service.label as keyof typeof selectedClient.customRates] || service.price;
+      const price = selectedClient?.serviceRates?.[service.name] || service.basePrice;
       setItems(items.map(item => item.id === itemId ? { 
         ...item, 
+        serviceId: service.id,
         description: service.description, 
-        price: price 
+        basePrice: price,
+        taxIncrement: service.taxIncrement
       } : item));
     }
   };
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-  const taxRate = 0.21;
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * item.basePrice), 0);
   const subtotal = calculateSubtotal();
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
+  const breakdown = calculateTaxBreakdown(subtotal, discount);
 
   const handleSave = () => {
+    if (!selectedClientId) {
+      toast({ title: "Error", description: "Selecciona un cliente" });
+      return;
+    }
     toast({
       title: "Factura guardada",
-      description: "La factura se ha guardado correctamente.",
+      description: "La factura se ha creado correctamente.",
     });
     setTimeout(() => setLocation("/"), 1500);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => setLocation("/")} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Crear Factura (€)</h1>
-          <p className="text-muted-foreground mt-1">Configuración en euros con servicios predefinidos.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Crear Factura</h1>
+          <p className="text-muted-foreground mt-1">Facturación en euros con IRPF, IGIC y descuentos.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3 space-y-6">
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="border-b bg-gray-50/50 pb-4">
               <CardTitle className="text-lg">Cliente</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 grid grid-cols-1 gap-4">
+            <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
                 <Label>Seleccionar Cliente</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
@@ -106,27 +102,18 @@ export default function CreateInvoice() {
                     <SelectValue placeholder="Busca un cliente..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {MOCK_CLIENTS.map(c => (
+                    {clients.map(c => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {selectedClient && (
-                <div className="grid grid-cols-2 gap-4 p-4 bg-primary/5 rounded-lg border border-primary/10">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">NIF/CIF</p>
-                    <p className="font-medium">{selectedClient.nif}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Email</p>
-                    <p className="font-medium">{selectedClient.email}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Dirección</p>
-                    <p className="font-medium">{selectedClient.address}</p>
-                  </div>
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/10 space-y-2 text-sm">
+                  <p><span className="font-bold">NIF:</span> {selectedClient.nif}</p>
+                  <p><span className="font-bold">Email:</span> {selectedClient.email}</p>
+                  <p><span className="font-bold">Dirección:</span> {selectedClient.address}, {selectedClient.city}</p>
                 </div>
               )}
             </CardContent>
@@ -136,63 +123,86 @@ export default function CreateInvoice() {
             <CardHeader className="border-b bg-gray-50/50 pb-4">
               <CardTitle className="text-lg">Conceptos</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              {items.map((item) => (
-                <div key={item.id} className="space-y-4 p-4 border rounded-lg relative bg-white">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Cargar Plantilla de Servicio</Label>
-                      <Select onValueChange={(val) => applyServiceTemplate(item.id, val)}>
-                        <SelectTrigger className="bg-gray-50">
-                          <SelectValue placeholder="Elegir servicio recurrente..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {RECURRING_SERVICES.map(s => (
-                            <SelectItem key={s.label} value={s.label}>{s.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Precio Unitario (€)</Label>
-                      <Input 
-                        type="number" 
-                        value={item.price}
-                        onChange={(e) => updateItem(item.id, "price", parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                  </div>
+            <CardContent className="pt-6 space-y-4">
+              {items.map((item, idx) => (
+                <div key={item.id} className="space-y-3 p-4 border rounded-lg bg-white">
                   <div className="space-y-2">
-                    <Label>Descripción Personalizada</Label>
-                    <Textarea 
+                    <Label className="text-sm">Cargar Servicio Predefinido</Label>
+                    <Select onValueChange={(val) => applyService(item.id, val)}>
+                      <SelectTrigger className="bg-gray-50 text-sm">
+                        <SelectValue placeholder="Elegir servicio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map(s => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Descripción</Label>
+                    <Textarea
                       value={item.description}
                       onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                      placeholder="Detalles del servicio..."
-                      className="resize-none"
+                      placeholder="Detalles del servicio"
+                      className="resize-none text-sm"
+                      rows={2}
                     />
                   </div>
-                  <div className="flex justify-between items-center pt-2">
-                    <div className="flex items-center gap-2">
-                      <Label>Cantidad:</Label>
-                      <Input 
-                        type="number" 
-                        className="w-20" 
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cantidad</Label>
+                      <Input
+                        type="number"
+                        min="1"
                         value={item.quantity}
-                        onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
+                        onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 1)}
+                        className="text-sm"
                       />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-lg">
-                        {(item.quantity * item.price).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                      </span>
-                      <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} disabled={items.length === 1}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
+                    <div className="space-y-1">
+                      <Label className="text-xs">Precio Ud. (€)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={item.basePrice}
+                        onChange={(e) => updateItem(item.id, "basePrice", parseFloat(e.target.value) || 0)}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Tax Inc. (%)</Label>
+                      <Input
+                        type="number"
+                        value={item.taxIncrement}
+                        onChange={(e) => updateItem(item.id, "taxIncrement", parseFloat(e.target.value) || 0)}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeItem(item.id)}
+                        disabled={items.length === 1}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
+
+                  <div className="pt-2 border-t text-right">
+                    <span className="text-sm font-bold">
+                      Subtotal: {formatCurrency(item.quantity * item.basePrice)}
+                    </span>
+                  </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full border-dashed" onClick={addItem}>
+
+              <Button variant="outline" className="w-full border-dashed mt-4" onClick={addItem}>
                 <Plus className="w-4 h-4 mr-2" /> Añadir Concepto
               </Button>
             </CardContent>
@@ -201,16 +211,74 @@ export default function CreateInvoice() {
 
         <div className="space-y-6">
           <Card className="border-none shadow-sm bg-slate-900 text-white">
-            <CardHeader><CardTitle className="text-lg">Resumen de Factura</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between opacity-80"><span>Subtotal</span><span>{subtotal.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span></div>
-              <div className="flex justify-between opacity-80"><span>IVA (21%)</span><span>{tax.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span></div>
-              <Separator className="bg-white/10" />
-              <div className="flex justify-between font-bold text-2xl"><span>Total</span><span>{total.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span></div>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-white">Desglose</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between opacity-80">
+                <span>Subtotal</span>
+                <span>{formatCurrency(breakdown.subtotal)}</span>
+              </div>
+              <div className="flex justify-between opacity-80">
+                <span>IRPF (15%)</span>
+                <span className="text-red-400">-{formatCurrency(breakdown.irpf)}</span>
+              </div>
+              <div className="space-y-2 border-t border-white/10 pt-2">
+                <Label className="text-xs opacity-70">Descuento (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={discount}
+                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                  className="bg-white/10 text-white placeholder:text-white/50 border-white/20 text-sm"
+                />
+              </div>
+              <div className="flex justify-between opacity-80 pt-2">
+                <span>Base Imponible</span>
+                <span>{formatCurrency(breakdown.taxableBase)}</span>
+              </div>
+              <div className="flex justify-between opacity-80">
+                <span>IGIC (7%)</span>
+                <span className="text-green-400">+{formatCurrency(breakdown.igic)}</span>
+              </div>
+              <Separator className="bg-white/10 my-3" />
+              <div className="flex justify-between font-bold text-lg pt-2">
+                <span>Total</span>
+                <span className="text-yellow-400">{formatCurrency(breakdown.total)}</span>
+              </div>
             </CardContent>
-            <CardFooter className="flex gap-2 p-6 pt-0">
-               <Button data-testid="btn-save-invoice" className="w-full bg-primary hover:bg-primary/90" onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" /> Guardar Factura
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Detalles de Emisión</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Fecha de Emisión</Label>
+                <Input type="date" defaultValue={new Date().toISOString().split("T")[0]} className="text-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Fecha de Vencimiento</Label>
+                <Input
+                  type="date"
+                  defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Notas</Label>
+                <Textarea placeholder="Notas adicionales..." className="resize-none text-sm" rows={2} />
+              </div>
+            </CardContent>
+            <CardFooter className="bg-gray-50/50 border-t p-4 flex gap-2">
+              <Button variant="outline" className="flex-1 bg-white text-sm" onClick={() => setLocation("/")}>
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button data-testid="btn-save-invoice" className="flex-1 text-sm" onClick={handleSave}>
+                <Save className="w-4 h-4 mr-2" />
+                Guardar
               </Button>
             </CardFooter>
           </Card>

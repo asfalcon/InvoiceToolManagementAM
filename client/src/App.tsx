@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,8 @@ import InvoicesList from "@/pages/InvoicesList";
 import CreateInvoice from "@/pages/CreateInvoice";
 import Dashboard from "@/pages/Dashboard";
 import ClientsManagement from "@/pages/ClientsManagement";
+import ServicesManagement from "@/pages/ServicesManagement";
+import Settings from "@/pages/Settings";
 import ExportInvoice from "@/pages/ExportInvoice";
 import Layout from "@/components/Layout";
 
@@ -20,6 +22,8 @@ function Router() {
         <Route path="/" component={InvoicesList} />
         <Route path="/create" component={CreateInvoice} />
         <Route path="/clients" component={ClientsManagement} />
+        <Route path="/services" component={ServicesManagement} />
+        <Route path="/settings" component={Settings} />
         <Route path="/export/:id" component={ExportInvoice} />
         <Route component={NotFound} />
       </Switch>

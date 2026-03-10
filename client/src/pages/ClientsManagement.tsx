@@ -4,78 +4,202 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit2, Mail, MapPin, Phone } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Trash2, Edit2, Mail, MapPin, Phone } from "lucide-react";
+import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
-
-const MOCK_CLIENTS = [
-  { id: "1", name: "Acme Corp", nif: "B12345678", email: "contact@acme.com", phone: "+34 912 345 678", address: "Av. Principal 123, Madrid" },
-  { id: "2", name: "Globex Inc", nif: "A87654321", email: "info@globex.com", phone: "+34 931 234 567", address: "Calle Industria 45, Barcelona" },
-];
+import { Client } from "@/types";
 
 export default function ClientsManagement() {
+  const { clients, addClient, updateClient, deleteClient, services } = useSettings();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Partial<Client>>({
+    name: "",
+    nif: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    zipCode: "",
+    country: "España",
+    billingType: "standard",
+    customFields: {},
+    serviceRates: {},
+  });
+
+  const filteredClients = clients.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const handleSave = () => {
+    if (!formData.name || !formData.nif || !formData.email) {
+      toast({ title: "Error", description: "Completa los campos obligatorios" });
+      return;
+    }
+
+    if (editingId) {
+      updateClient(editingId, formData);
+      toast({ title: "Cliente actualizado" });
+    } else {
+      addClient(formData as Client);
+      toast({ title: "Cliente creado" });
+    }
+
+    setIsOpen(false);
+    setEditingId(null);
+    setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", billingType: "standard", customFields: {}, serviceRates: {} });
+  };
+
+  const handleEdit = (client: Client) => {
+    setFormData(client);
+    setEditingId(client.id);
+    setIsOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gestión de Clientes</h1>
-          <p className="text-muted-foreground mt-1">Administra tus clientes y sus condiciones comerciales.</p>
+          <p className="text-muted-foreground mt-1">Administra tus clientes y sus tarifas especiales.</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" /> Nuevo Cliente
-        </Button>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" /> Nuevo Cliente
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{editingId ? "Editar Cliente" : "Crear Cliente"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Nombre de la Empresa</Label>
+                  <Input value={formData.name || ""} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ej. Acme Corp" />
+                </div>
+                <div className="space-y-2">
+                  <Label>NIF/CIF</Label>
+                  <Input value={formData.nif || ""} onChange={(e) => setFormData({ ...formData, nif: e.target.value })} placeholder="B12345678" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input type="email" value={formData.email || ""} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="contacto@empresa.com" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Teléfono</Label>
+                  <Input value={formData.phone || ""} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+34 912 345 678" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Dirección</Label>
+                  <Input value={formData.address || ""} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="Calle Principal 123" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Ciudad</Label>
+                  <Input value={formData.city || ""} onChange={(e) => setFormData({ ...formData, city: e.target.value })} placeholder="Madrid" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Código Postal</Label>
+                  <Input value={formData.zipCode || ""} onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })} placeholder="28001" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>País</Label>
+                  <Input value={formData.country || ""} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="España" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Tipo de Facturación</Label>
+                  <select
+                    value={formData.billingType || "standard"}
+                    onChange={(e) => setFormData({ ...formData, billingType: e.target.value as "standard" | "simplified" })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="standard">Factura Completa</option>
+                    <option value="simplified">Factura Simplificada</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold text-sm mb-3">Tarifas Especiales por Servicio</h3>
+                <div className="space-y-2">
+                  {services.map(service => (
+                    <div key={service.id} className="grid grid-cols-2 gap-2 items-center">
+                      <Label className="text-sm">{service.name}</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder={service.basePrice.toString()}
+                        defaultValue={formData.serviceRates?.[service.name] || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          serviceRates: { ...formData.serviceRates, [service.name]: parseFloat(e.target.value) || service.basePrice }
+                        })}
+                        className="text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleSave} className="w-full">{editingId ? "Actualizar" : "Crear"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Buscar cliente..." 
-          className="pl-9 bg-white"
+        <Input
+          placeholder="Buscar cliente..."
+          className="bg-white"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {MOCK_CLIENTS.map((client) => (
-          <Card key={client.id} className="border-none shadow-sm bg-white overflow-hidden group hover:ring-2 ring-primary/20 transition-all">
-            <CardHeader className="bg-gray-50/50 border-b flex flex-row justify-between items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredClients.map((client) => (
+          <Card key={client.id} className="border-none shadow-sm bg-white overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b flex flex-row justify-between items-start">
               <div>
-                <CardTitle className="text-xl">{client.name}</CardTitle>
+                <CardTitle className="text-lg">{client.name}</CardTitle>
                 <p className="text-sm text-muted-foreground font-mono mt-1">{client.nif}</p>
               </div>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Edit2 className="w-4 h-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEdit(client)}
+                  className="rounded-full"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteClient(client.id)}
+                  className="rounded-full text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="w-4 h-4 text-primary" />
-                  <span>{client.email}</span>
+            <CardContent className="p-4 space-y-3">
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="w-4 h-4 text-primary" /> {client.email}
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>{client.phone}</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="w-4 h-4 text-primary" /> {client.phone}
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span>{client.address}</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4 text-primary" /> {client.address}, {client.city}
                 </div>
               </div>
-              
-              <div className="pt-4 border-t">
-                <p className="text-xs font-bold uppercase text-muted-foreground tracking-widest mb-3">Tarifas Especiales</p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                    Consultoría IT: €75/h
-                  </Badge>
-                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100">
-                    Descuento: 10%
-                  </Badge>
-                </div>
+              <div className="border-t pt-3">
+                <p className="text-xs font-bold uppercase text-muted-foreground tracking-widest mb-2">Tipo: {client.billingType === "standard" ? "Factura Completa" : "Simplificada"}</p>
               </div>
             </CardContent>
           </Card>
