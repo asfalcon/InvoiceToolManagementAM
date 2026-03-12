@@ -15,9 +15,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background print:h-auto print:overflow-visible">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col hidden md:flex">
+      <aside className="w-64 border-r bg-card flex flex-col hidden md:flex print:hidden">
         <div className="p-6 flex items-center gap-3 border-b">
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
             F
@@ -49,7 +49,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile nav (bottom) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-card flex justify-around p-1 z-50 overflow-x-auto">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-card flex justify-around p-1 z-50 overflow-x-auto print:hidden">
          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
@@ -65,8 +65,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-        <div className="max-w-6xl mx-auto p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 print:overflow-visible print:pb-0">
+        <div className="max-w-6xl mx-auto p-4 md:p-8 print:p-0 print:max-w-none">
           {children}
         </div>
       </main>

@@ -1,42 +1,54 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Download, MoreHorizontal, Users, Euro } from "lucide-react";
+import { Plus, Search, Filter, Download, MoreHorizontal, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
-
-// Mock data to simulate the database
-const MOCK_INVOICES = [
-  { id: "FAC-2023-001", client: "Acme Corp", date: "2023-10-01", amount: 1500.00, status: "pagada" },
-  { id: "FAC-2023-002", client: "Globex Inc", date: "2023-10-05", amount: 320.50, status: "pendiente" },
-  { id: "FAC-2023-003", client: "Initech", date: "2023-10-12", amount: 4500.00, status: "vencida" },
-  { id: "FAC-2023-004", client: "Stark Industries", date: "2023-10-15", amount: 890.00, status: "pagada" },
-  { id: "FAC-2023-005", client: "Wayne Enterprises", date: "2023-10-20", amount: 12500.00, status: "pendiente" },
-  { id: "FAC-2023-006", client: "Cyberdyne Systems", date: "2023-10-22", amount: 450.00, status: "borrador" },
-  { id: "FAC-2023-007", client: "Massive Dynamic", date: "2023-10-25", amount: 2100.00, status: "pagada" },
-];
+import { useSettings } from "@/contexts/SettingsContext";
+import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "pagada": return "bg-emerald-100 text-emerald-800 border-emerald-200";
-    case "pendiente": return "bg-amber-100 text-amber-800 border-amber-200";
-    case "vencida": return "bg-rose-100 text-rose-800 border-rose-200";
-    case "borrador": return "bg-slate-100 text-slate-800 border-slate-200";
+    case "paid": return "bg-emerald-100 text-emerald-800 border-emerald-200";
+    case "pending": return "bg-amber-100 text-amber-800 border-amber-200";
+    case "overdue": return "bg-rose-100 text-rose-800 border-rose-200";
+    case "draft": return "bg-slate-100 text-slate-800 border-slate-200";
     default: return "bg-slate-100 text-slate-800 border-slate-200";
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "paid": return "Pagada";
+    case "pending": return "Pendiente";
+    case "overdue": return "Vencida";
+    case "draft": return "Borrador";
+    default: return "Desconocido";
   }
 };
 
 export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
+  const { invoices, clients, markInvoiceAsPaid } = useSettings();
 
-  const filteredInvoices = MOCK_INVOICES.filter(
+  const getClientName = (clientId: string) => {
+    return clients.find(c => c.id === clientId)?.name || "Cliente Desconocido";
+  };
+
+  const getInvoiceTotal = (invoice: any) => {
+    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * item.basePrice), 0);
+    const breakdown = calculateTaxBreakdown(subtotal, invoice.discount || 0);
+    return breakdown.total;
+  };
+
+  const filteredInvoices = invoices.filter(
     inv => 
-      inv.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.id.toLowerCase().includes(searchTerm.toLowerCase())
+      getClientName(inv.clientId).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inv.number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -64,7 +76,7 @@ export default function InvoicesList() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               data-testid="input-search-invoice"
-              placeholder="Buscar por cliente o ID..."
+              placeholder="Buscar por cliente o número..."
               className="pl-9 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,15 +110,15 @@ export default function InvoicesList() {
               {filteredInvoices.length > 0 ? (
                 filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id} className="hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.client}</TableCell>
+                    <TableCell className="font-medium">{invoice.number}</TableCell>
+                    <TableCell>{getClientName(invoice.clientId)}</TableCell>
                     <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES')}</TableCell>
                     <TableCell className="text-right font-medium">
-                      {invoice.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                      {formatCurrency(getInvoiceTotal(invoice))}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`capitalize ${getStatusColor(invoice.status)}`}>
-                        {invoice.status}
+                        {getStatusLabel(invoice.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -118,9 +130,15 @@ export default function InvoicesList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setLocation(`/export/${invoice.id}`)}>Exportar PDF</DropdownMenuItem>
-                          <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-                          <DropdownMenuItem className="text-primary">Marcar pagada</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setLocation(`/export/${invoice.id}`)}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Ver / PDF
+                          </DropdownMenuItem>
+                          {invoice.status !== 'paid' && (
+                            <DropdownMenuItem className="text-emerald-600 focus:text-emerald-700" onClick={() => markInvoiceAsPaid(invoice.id)}>
+                              Marcar como pagada
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -129,7 +147,7 @@ export default function InvoicesList() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No se encontraron facturas.
+                    No se encontraron facturas. Haz clic en "Nueva Factura" para empezar.
                   </TableCell>
                 </TableRow>
               )}

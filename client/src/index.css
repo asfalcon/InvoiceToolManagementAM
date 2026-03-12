@@ -68,6 +68,16 @@
   --radius: 0.5rem;
 }
 
+@media print {
+  body {
+    background: white;
+  }
+  @page {
+    margin: 0;
+    size: A4;
+  }
+}
+
 .dark {
   --background: 222 47% 11%;
   --foreground: 210 40% 98%;

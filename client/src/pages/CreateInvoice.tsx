@@ -9,20 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
-import { InvoiceItem } from "@/types";
+import { InvoiceItem, Invoice } from "@/types";
 
 export default function CreateInvoice() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { services, clients } = useSettings();
+  const { services, clients, addInvoice, invoices } = useSettings();
 
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }
   ]);
   const [discount, setDiscount] = useState(0);
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+  const [notes, setNotes] = useState("");
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
@@ -64,16 +67,42 @@ export default function CreateInvoice() {
   const subtotal = calculateSubtotal();
   const breakdown = calculateTaxBreakdown(subtotal, discount);
 
+  // Generate next invoice number
+  const nextInvoiceNumber = `FAC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`;
+
   const handleSave = () => {
     if (!selectedClientId) {
-      toast({ title: "Error", description: "Selecciona un cliente" });
+      toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
       return;
     }
+    
+    if (items.some(i => i.basePrice === 0 || !i.description)) {
+      toast({ title: "Atención", description: "Algunos conceptos están incompletos", variant: "destructive" });
+      return;
+    }
+
+    const newInvoice: Invoice = {
+      id: Date.now().toString(),
+      number: nextInvoiceNumber,
+      clientId: selectedClientId,
+      date: issueDate,
+      dueDate: dueDate,
+      items: items,
+      discount: discount,
+      notes: notes,
+      status: "pending"
+    };
+
+    // Save using context which uses local storage
+    addInvoice(newInvoice);
+
     toast({
       title: "Factura guardada",
-      description: "La factura se ha creado correctamente.",
+      description: `La factura ${nextInvoiceNumber} se ha creado correctamente.`,
     });
-    setTimeout(() => setLocation("/"), 1500);
+    
+    // Redirect without full reload to maintain context state
+    setLocation("/");
   };
 
   return (
@@ -128,7 +157,7 @@ export default function CreateInvoice() {
                 <div key={item.id} className="space-y-3 p-4 border rounded-lg bg-white">
                   <div className="space-y-2">
                     <Label className="text-sm">Cargar Servicio Predefinido</Label>
-                    <Select onValueChange={(val) => applyService(item.id, val)}>
+                    <Select onValueChange={(val) => applyService(item.id, val)} value={item.serviceId || ""}>
                       <SelectTrigger className="bg-gray-50 text-sm">
                         <SelectValue placeholder="Elegir servicio..." />
                       </SelectTrigger>
@@ -254,21 +283,21 @@ export default function CreateInvoice() {
               <CardTitle className="text-lg">Detalles de Emisión</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+               <div className="space-y-2">
+                <Label className="text-sm">Número de Factura</Label>
+                <Input value={nextInvoiceNumber} disabled className="text-sm bg-gray-50" />
+              </div>
               <div className="space-y-2">
                 <Label className="text-sm">Fecha de Emisión</Label>
-                <Input type="date" defaultValue={new Date().toISOString().split("T")[0]} className="text-sm" />
+                <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Fecha de Vencimiento</Label>
-                <Input
-                  type="date"
-                  defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                  className="text-sm"
-                />
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Notas</Label>
-                <Textarea placeholder="Notas adicionales..." className="resize-none text-sm" rows={2} />
+                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas adicionales..." className="resize-none text-sm" rows={2} />
               </div>
             </CardContent>
             <CardFooter className="bg-gray-50/50 border-t p-4 flex gap-2">
