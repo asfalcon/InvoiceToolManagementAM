@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
@@ -32,6 +32,7 @@ const getStatusLabel = (status: string) => {
 
 export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [, setLocation] = useLocation();
   const { invoices, clients, markInvoiceAsPaid } = useSettings();
 
@@ -45,11 +46,28 @@ export default function InvoicesList() {
     return breakdown.total;
   };
 
-  const filteredInvoices = invoices.filter(
-    inv => 
-      getClientName(inv.clientId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter(inv => {
+    const search = searchTerm.toLowerCase();
+    const clientName = getClientName(inv.clientId).toLowerCase();
+    const number = inv.number.toLowerCase();
+    const dateStr = new Date(inv.date).toLocaleDateString('es-ES');
+    const totalAmount = getInvoiceTotal(inv).toLocaleString("es-ES");
+    const statusLabel = getStatusLabel(inv.status).toLowerCase();
+    
+    const matchesSearch = 
+      clientName.includes(search) || 
+      number.includes(search) ||
+      dateStr.includes(search) ||
+      totalAmount.includes(search) ||
+      statusLabel.includes(search);
+      
+    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Calculate total amount of filtered invoices
+  const totalFilteredAmount = filteredInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -72,24 +90,47 @@ export default function InvoicesList() {
 
       <Card className="border-none shadow-sm bg-white overflow-hidden">
         <div className="p-4 border-b flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-80">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               data-testid="input-search-invoice"
-              placeholder="Buscar por cliente o número..."
+              placeholder="Buscar por cliente, número, fecha, importe..."
               className="pl-9 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" className="gap-2 bg-white flex-1 sm:flex-none">
-              <Filter className="w-4 h-4" />
-              Filtrar
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 bg-white flex-1 sm:flex-none">
+                  <Filter className="w-4 h-4" />
+                  {statusFilter === 'all' ? 'Estado' : getStatusLabel(statusFilter)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Filtrar por estado</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setStatusFilter("all")} className="cursor-pointer">
+                  Todos los estados
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("paid")} className="cursor-pointer">
+                  <Badge variant="outline" className="mr-2 bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100">Pagada</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("pending")} className="cursor-pointer">
+                  <Badge variant="outline" className="mr-2 bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">Pendiente</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("overdue")} className="cursor-pointer">
+                  <Badge variant="outline" className="mr-2 bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100">Vencida</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("draft")} className="cursor-pointer">
+                  <Badge variant="outline" className="mr-2 bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-100">Borrador</Badge>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" className="gap-2 bg-white flex-1 sm:flex-none">
               <Download className="w-4 h-4" />
-              Exportar
+              Exportar Lista
             </Button>
           </div>
         </div>
@@ -147,13 +188,21 @@ export default function InvoicesList() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No se encontraron facturas. Haz clic en "Nueva Factura" para empezar.
+                    No se encontraron facturas con esos criterios.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
+        {filteredInvoices.length > 0 && (
+          <div className="p-4 bg-gray-50 border-t flex justify-end">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Total Mostrado</p>
+              <p className="text-lg font-bold">{formatCurrency(totalFilteredAmount)}</p>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

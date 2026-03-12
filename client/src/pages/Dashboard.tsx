@@ -1,30 +1,61 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { FileText, Clock, CheckCircle2, AlertCircle, FileWarning } from "lucide-react";
-
-const DATA_VENTAS = [
-  { name: "Ene", total: 4500 },
-  { name: "Feb", total: 5200 },
-  { name: "Mar", total: 4800 },
-  { name: "Abr", total: 6100 },
-  { name: "May", total: 5900 },
-  { name: "Jun", total: 7200 },
-];
-
-const DATA_ESTADOS = [
-  { name: "Pagadas", value: 65, color: "#10b981" },
-  { name: "Pendientes", value: 25, color: "#f59e0b" },
-  { name: "Vencidas", value: 10, color: "#ef4444" },
-];
-
-const STATS = [
-  { label: "Ventas Totales", val: "€24,500", icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Pagadas", val: "€15,800", icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-  { label: "Pendientes", val: "€6,200", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-  { label: "Vencidas", val: "€2,500", icon: FileWarning, color: "text-rose-600", bg: "bg-rose-50" },
-];
+import { useSettings } from "@/contexts/SettingsContext";
+import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
 
 export default function Dashboard() {
+  const { invoices } = useSettings();
+
+  // Calcular totales
+  const getInvoiceTotal = (invoice: any) => {
+    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * item.basePrice), 0);
+    return calculateTaxBreakdown(subtotal, invoice.discount || 0).total;
+  };
+
+  const totalSales = invoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+  
+  const paidInvoices = invoices.filter(i => i.status === 'paid');
+  const pendingInvoices = invoices.filter(i => i.status === 'pending');
+  const overdueInvoices = invoices.filter(i => i.status === 'overdue');
+
+  const totalPaid = paidInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+  const totalPending = pendingInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+  const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+
+  const STATS = [
+    { label: "Ventas Totales", val: formatCurrency(totalSales), icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Pagadas", val: formatCurrency(totalPaid), icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Pendientes", val: formatCurrency(totalPending), icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Vencidas", val: formatCurrency(totalOverdue), icon: FileWarning, color: "text-rose-600", bg: "bg-rose-50" },
+  ];
+
+  const DATA_ESTADOS = [
+    { name: "Pagadas", value: paidInvoices.length, color: "#10b981" },
+    { name: "Pendientes", value: pendingInvoices.length, color: "#f59e0b" },
+    { name: "Vencidas", value: overdueInvoices.length, color: "#ef4444" },
+    { name: "Borrador", value: invoices.filter(i => i.status === 'draft').length, color: "#94a3b8" }
+  ].filter(d => d.value > 0);
+
+  // Evolución de ventas de los últimos 6 meses
+  const monthlySales = Array(6).fill(0).map((_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    return {
+      monthStr: d.toISOString().slice(0, 7), // YYYY-MM
+      name: d.toLocaleDateString('es-ES', { month: 'short' }),
+      total: 0
+    };
+  });
+
+  invoices.forEach(inv => {
+    const month = inv.date.slice(0, 7);
+    const m = monthlySales.find(ms => ms.monthStr === month);
+    if (m) {
+      m.total += getInvoiceTotal(inv);
+    }
+  });
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <div>
@@ -56,11 +87,12 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={DATA_VENTAS}>
+              <BarChart data={monthlySales}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} style={{ textTransform: 'capitalize' }} />
                 <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `€${val}`} />
                 <Tooltip 
+                  formatter={(value: number) => [formatCurrency(value), "Total"]}
                   cursor={{fill: '#f8fafc'}}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
@@ -76,24 +108,33 @@ export default function Dashboard() {
             <CardDescription>Distribución por estado</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] flex flex-col items-center justify-center">
-            <ResponsiveContainer width="100%" height="80%">
-              <PieChart>
-                <Pie data={DATA_ESTADOS} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {DATA_ESTADOS.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+            {DATA_ESTADOS.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height="80%">
+                  <PieChart>
+                    <Pie data={DATA_ESTADOS} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                      {DATA_ESTADOS.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value} facturas`, "Cantidad"]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex gap-4 mt-4 flex-wrap justify-center">
+                  {DATA_ESTADOS.map((e) => (
+                    <div key={e.name} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: e.color }} />
+                      <span className="text-xs text-muted-foreground">{e.name} ({e.value})</span>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex gap-4 mt-4">
-              {DATA_ESTADOS.map((e) => (
-                <div key={e.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: e.color }} />
-                  <span className="text-xs text-muted-foreground">{e.name}</span>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <PieChart className="w-12 h-12 mx-auto text-slate-200 mb-2" />
+                <p>No hay datos suficientes</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
