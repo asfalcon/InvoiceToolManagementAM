@@ -9,6 +9,7 @@ import { Plus, Trash2, Edit2 } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
 import { Service } from "@/types";
+import { formatCurrency } from "@/lib/taxCalculations";
 
 export default function ServicesManagement() {
   const { services, addService, updateService, deleteService } = useSettings();
