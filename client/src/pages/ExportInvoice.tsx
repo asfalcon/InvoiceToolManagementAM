@@ -159,32 +159,32 @@ export default function ExportInvoice() {
                   )}
                 </div>
                 <div className="w-[45%]">
-                  <div className="bg-slate-50 text-[13px] text-slate-600 border border-slate-200 border-t-0">
-                    <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                  <div className="text-[13px] text-slate-600">
+                    <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                       <span>Subtotal</span>
                       <span>€ {breakdown.subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                     </div>
                     {invoice.discount > 0 && (
-                      <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                      <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                         <span>Descuento</span>
                         <span>-€ {invoice.discount.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                       </div>
                     )}
-                    <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                    <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                       <span>IRPF (15%)</span>
-                      <span>€ {breakdown.irpf.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-red-600">-€ {breakdown.irpf.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <div className="flex justify-between py-2 px-6 border-b border-slate-200 text-slate-800 font-medium bg-slate-100">
+                    <div className="flex justify-between py-2 px-4 border-b border-slate-200 text-slate-800 font-medium">
                       <span>Base Imponible</span>
                       <span>€ {breakdown.taxableBase.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <div className="flex justify-between py-2 px-6">
+                    <div className="flex justify-between py-2 px-4 border-b border-slate-600">
                       <span>IGIC (7%)</span>
                       <span>€ {breakdown.igic.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
-                  <div className="bg-[#a29895] text-white flex justify-between items-center py-4 px-6 border border-[#a29895]">
-                    <span className="font-semibold uppercase tracking-widest text-xs">Total</span>
+                  <div className="text-slate-900 flex justify-between items-center py-4 px-4">
+                    <span className="font-bold uppercase tracking-widest text-xs">Total</span>
                     <span className="font-bold text-xl">€ {breakdown.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
