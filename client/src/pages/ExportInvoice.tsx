@@ -11,7 +11,7 @@ import html2pdf from "html2pdf.js";
 export default function ExportInvoice() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
-  const { company, invoices, clients, markInvoiceAsPaid } = useSettings();
+  const { company, invoices, clients, markInvoiceAsPaid, updateInvoice } = useSettings();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const invoice = invoices.find(i => i.id === id);
@@ -76,128 +76,157 @@ export default function ExportInvoice() {
           {/* A4 Invoice Document */}
           <div 
             ref={invoiceRef}
-            className="bg-white text-slate-900 shadow-xl print:shadow-none p-12 sm:p-16 w-[210mm] min-h-[297mm] text-[12px] flex flex-col"
-            style={{ fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}
+            className="bg-white text-slate-900 shadow-xl print:shadow-none p-12 sm:p-16 w-[210mm] min-h-[297mm] text-[12px] flex flex-col font-sans"
           >
-            {/* Header / Logo */}
-            <div className="flex justify-between items-start mb-12">
-              <div className="max-w-[50%]">
-                {/* Logo area */}
+            {/* Header: Company & Client Info */}
+            <div className="flex justify-between items-start mb-8">
+              {/* Top Left: Company */}
+              <div className="w-[48%]">
                 {company.logo ? (
-                  <img src={company.logo} alt="Logo Empresa" className="max-h-16 mb-6 object-contain" />
+                  <img src={company.logo} alt="Logo Empresa" className="max-h-16 mb-4 object-contain" />
                 ) : (
-                  <div className="text-2xl font-bold mb-4 tracking-tight text-slate-800">{company.name}</div>
+                  <div className="font-bold text-2xl text-slate-900 mb-2">{company.name}</div>
                 )}
-                <div className="text-slate-500 text-[11px] leading-relaxed">
-                  <p>{company.address}</p>
-                  <p>{company.zipCode} {company.city}, {company.country}</p>
-                  <p className="mt-2"><span className="font-medium text-slate-600">NIF:</span> {company.nif}</p>
-                  <p>{company.email}</p>
-                  <p>{company.phone}</p>
+                <div className="text-sm leading-relaxed text-slate-700 font-sans">
+                  <span className="font-semibold">NIF:</span> {company.nif}<br />
+                  {company.address}<br />
+                  {company.zipCode} {company.city}, {company.country}<br />
+                  {company.email && <span>{company.email}<br /></span>}
+                  {company.phone && <span>{company.phone}</span>}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-light text-slate-400 tracking-widest uppercase mb-4">Factura</div>
-                <div className="text-xl font-medium text-slate-800 mb-6">{invoice.number}</div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-4 text-right text-[11px]">
-                  <div className="text-slate-400 font-medium uppercase tracking-wider">Emisión:</div>
-                  <div className="font-medium text-slate-700">{new Date(invoice.date).toLocaleDateString("es-ES")}</div>
-                  <div className="text-slate-400 font-medium uppercase tracking-wider">Vencimiento:</div>
-                  <div className="font-medium text-slate-700">{new Date(invoice.dueDate).toLocaleDateString("es-ES")}</div>
+
+              {/* Top Right: Client */}
+              <div className="w-[48%] text-right">
+                <div className="text-[40px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-6">
+                  FACTURA
+                </div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-widest font-semibold">Facturado a:</div>
+                <div className="font-bold text-lg text-slate-800 mb-1">{client.name}</div>
+                <div className="text-sm leading-relaxed text-slate-700 font-sans">
+                  <span className="font-semibold">NIF:</span> {client.nif}<br />
+                  {client.address}<br />
+                  {client.zipCode} {client.city}, {client.country}<br />
+                  {client.email && <span>{client.email}</span>}
                 </div>
               </div>
             </div>
 
-            {/* Client Info */}
-            <div className="mb-12">
-              <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-3">Facturar a:</h3>
-              <div className="font-bold text-base text-slate-800 mb-2">{client.name}</div>
-              <div className="text-slate-600 text-[11px] leading-relaxed">
-                <p><span className="font-medium">NIF:</span> {client.nif}</p>
-                <p>{client.address}</p>
-                <p>{client.zipCode} {client.city}, {client.country}</p>
-                {client.email && <p className="mt-1">{client.email}</p>}
+            {/* Invoice Meta */}
+            <div className="flex justify-start gap-12 mb-10 border-b border-t border-slate-200 py-4">
+              <div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
+                <div className="font-semibold text-sm text-slate-800">{invoice.number}</div>
+              </div>
+              <div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+                <div className="font-semibold text-sm text-slate-800">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
+              </div>
+              <div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Vencimiento:</div>
+                <div className="font-semibold text-sm text-slate-800">{new Date(invoice.dueDate).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
               </div>
             </div>
 
             {/* Items Table */}
-            <table className="w-full mb-12 text-[11px]">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="pb-3 font-bold uppercase tracking-wider w-[50%]">Descripción del Servicio</th>
-                  <th className="pb-3 font-bold uppercase tracking-wider text-center w-[15%]">Cant.</th>
-                  <th className="pb-3 font-bold uppercase tracking-wider text-right w-[15%]">Precio/U</th>
-                  <th className="pb-3 font-bold uppercase tracking-wider text-right w-[20%]">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody className="text-slate-700">
-                {invoice.items.map((item, idx) => (
-                  <tr key={idx} className="border-b border-slate-100 last:border-0">
-                    <td className="py-4 pr-4">{item.description}</td>
-                    <td className="py-4 text-center">{item.quantity}</td>
-                    <td className="py-4 text-right">
-                      {item.basePrice.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €
-                    </td>
-                    <td className="py-4 text-right font-medium">
-                      {(item.quantity * item.basePrice).toLocaleString("es-ES", { minimumFractionDigits: 2 })} €
-                    </td>
+            <div className="mb-8 flex-grow">
+              <table className="w-full text-center border-collapse">
+                <thead>
+                  <tr className="bg-[#e6ddda] text-[#59514e] uppercase text-[10px] tracking-widest font-bold">
+                    <th className="py-4 px-2 border-r border-white w-[8%]">Nº</th>
+                    <th className="py-4 px-4 border-r border-white text-left w-[47%]">Descripción</th>
+                    <th className="py-4 px-2 border-r border-white w-[15%]">Cant.</th>
+                    <th className="py-4 px-2 border-r border-white w-[15%]">Precio</th>
+                    <th className="py-4 px-2 w-[15%]">Subtotal</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="text-sm font-sans border-b border-slate-200">
+                  {invoice.items.map((item, idx) => (
+                    <tr key={idx} className="border-b border-slate-100">
+                      <td className="py-5 px-2 border-r border-slate-200 text-slate-600 align-top">{idx + 1}</td>
+                      <td className="py-5 px-4 border-r border-slate-200 text-left text-slate-800 align-top font-medium">{item.description}</td>
+                      <td className="py-5 px-2 border-r border-slate-200 text-slate-700 align-top">{item.quantity}</td>
+                      <td className="py-5 px-2 border-r border-slate-200 text-slate-700 align-top">€ {item.basePrice.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                      <td className="py-5 px-2 text-slate-800 font-bold align-top">€ {(item.quantity * item.basePrice).toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  ))}
+                  {/* Fill empty space if few items for layout stability */}
+                  {Array.from({ length: Math.max(1, 5 - invoice.items.length) }).map((_, idx) => (
+                    <tr key={`empty-${idx}`} className="border-b border-slate-100">
+                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
+                      <td className="py-6 px-4 border-r border-slate-200 text-transparent">.</td>
+                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
+                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
+                      <td className="py-6 px-2 text-transparent">.</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            {/* Summary & Totals */}
-            <div className="flex justify-end mb-16 text-[11px]">
-              <div className="w-[300px]">
-                <div className="flex justify-between py-2 text-slate-600">
-                  <span>Suma Total</span>
-                  <span>{breakdown.subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €</span>
+              {/* Breakdown & Totals */}
+              <div className="flex">
+                <div className="w-[55%] pt-4 pr-4">
+                  {invoice.notes && (
+                    <div className="text-slate-600 mt-4">
+                      <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-2">Observaciones:</h4>
+                      <p className="text-[12px] leading-relaxed italic">{invoice.notes}</p>
+                    </div>
+                  )}
                 </div>
-                {invoice.discount > 0 && (
-                  <div className="flex justify-between py-2 text-slate-600">
-                    <span>Descuento</span>
-                    <span>-{invoice.discount.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €</span>
+                <div className="w-[45%]">
+                  <div className="bg-slate-50 text-[13px] text-slate-600 border border-slate-200 border-t-0">
+                    <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                      <span>Subtotal</span>
+                      <span>€ {breakdown.subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    {invoice.discount > 0 && (
+                      <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                        <span>Descuento</span>
+                        <span>-€ {invoice.discount.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-2 px-6 border-b border-slate-200">
+                      <span>IRPF (15%)</span>
+                      <span>€ {breakdown.irpf.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between py-2 px-6 border-b border-slate-200 text-slate-800 font-medium bg-slate-100">
+                      <span>Base Imponible</span>
+                      <span>€ {breakdown.taxableBase.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between py-2 px-6">
+                      <span>IGIC (7%)</span>
+                      <span>€ {breakdown.igic.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                    </div>
                   </div>
-                )}
-                <div className="flex justify-between py-2 text-slate-600 border-b border-slate-100">
-                  <span>Retención IRPF (15%)</span>
-                  <span className="text-slate-600">-{breakdown.irpf.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €</span>
-                </div>
-                <div className="flex justify-between py-3 text-slate-800 font-medium">
-                  <span>Base Imponible</span>
-                  <span>{breakdown.taxableBase.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €</span>
-                </div>
-                <div className="flex justify-between py-2 text-slate-600">
-                  <span>IGIC (7%)</span>
-                  <span>+{breakdown.igic.toLocaleString("es-ES", { minimumFractionDigits: 2 })} €</span>
-                </div>
-                
-                <div className="flex justify-between py-4 mt-2 border-t border-slate-200 text-base font-bold text-slate-900">
-                  <span>Total a Pagar</span>
-                  <span>{breakdown.total.toLocaleString("es-ES", { style: 'currency', currency: 'EUR' })}</span>
+                  <div className="bg-[#a29895] text-white flex justify-between items-center py-4 px-6 border border-[#a29895]">
+                    <span className="font-semibold uppercase tracking-widest text-xs">Total</span>
+                    <span className="font-bold text-xl">€ {breakdown.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {invoice.notes && (
-              <div className="mb-12 text-slate-600">
-                <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-2">Observaciones:</h4>
-                <p className="bg-slate-50 p-4 rounded text-[11px]">{invoice.notes}</p>
+            {/* Footer / Payment Info */}
+            <div className="mt-auto flex justify-between items-end pt-8">
+              <div className="text-[11px] text-slate-700 leading-relaxed font-mono">
+                <div className="mb-2 text-slate-800 font-bold font-sans text-xs">Información de Pago</div>
+                <div>Método: Transferencia Bancaria</div>
+                {company.bankCode && <div>Banco: {company.bankCode}</div>}
+                <div className="mt-1 font-semibold text-slate-900">IBAN: {company.bankAccount}</div>
               </div>
-            )}
-
-            {/* Footer */}
-            <div className="mt-auto pt-6 border-t border-slate-200 text-[9px] text-slate-500">
-              <div className="grid grid-cols-2 gap-10">
-                <div>
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Datos de Pago</h4>
-                  <p className="mb-1">Transferencia Bancaria</p>
-                  <p className="font-mono text-slate-800 mt-1">IBAN: {company.bankAccount}</p>
-                  {company.bankCode && <p className="font-mono mt-1">BIC/SWIFT: {company.bankCode}</p>}
+              
+              <div className="text-center w-[200px] flex flex-col items-center">
+                <div className="mb-2 h-16 flex items-end justify-center">
+                  {company.logo ? (
+                     <img src={company.logo} alt="Firma" className="max-h-12 object-contain opacity-80 mix-blend-multiply" />
+                  ) : (
+                     <div className="text-4xl text-slate-800 opacity-90 pb-2" style={{ fontFamily: "'Brush Script MT', cursive, serif" }}>
+                       {company.name.split(' ')[0]}
+                     </div>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
-                  <p className="text-justify leading-relaxed">{company.legalNotes}</p>
+                <div className="w-full border-t border-slate-400 pt-2 text-[11px] text-slate-600 tracking-wider">
+                  Firma Autorizada
                 </div>
               </div>
             </div>
@@ -219,7 +248,7 @@ export default function ExportInvoice() {
                 </span>
               </div>
               
-              {invoice.status !== 'paid' && (
+              {invoice.status !== 'paid' ? (
                 <Button 
                   className="w-full bg-emerald-600 hover:bg-emerald-700" 
                   onClick={() => {
@@ -227,6 +256,16 @@ export default function ExportInvoice() {
                   }}
                 >
                   Marcar como Pagada
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline"
+                  className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700" 
+                  onClick={() => {
+                    updateInvoice(invoice.id, { status: 'pending' });
+                  }}
+                >
+                  Deshacer Pago
                 </Button>
               )}
             </CardContent>

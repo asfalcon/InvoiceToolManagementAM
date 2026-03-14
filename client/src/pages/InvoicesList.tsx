@@ -34,7 +34,7 @@ export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [, setLocation] = useLocation();
-  const { invoices, clients, markInvoiceAsPaid } = useSettings();
+  const { invoices, clients, markInvoiceAsPaid, updateInvoice } = useSettings();
 
   const getClientName = (clientId: string) => {
     return clients.find(c => c.id === clientId)?.name || "Cliente Desconocido";
@@ -175,9 +175,13 @@ export default function InvoicesList() {
                             <FileText className="w-4 h-4 mr-2" />
                             Ver / PDF
                           </DropdownMenuItem>
-                          {invoice.status !== 'paid' && (
-                            <DropdownMenuItem className="text-emerald-600 focus:text-emerald-700" onClick={() => markInvoiceAsPaid(invoice.id)}>
+                          {invoice.status !== 'paid' ? (
+                            <DropdownMenuItem className="text-emerald-600 focus:text-emerald-700 cursor-pointer" onClick={() => markInvoiceAsPaid(invoice.id)}>
                               Marcar como pagada
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem className="text-amber-600 focus:text-amber-700 cursor-pointer" onClick={() => updateInvoice(invoice.id, { status: 'pending' })}>
+                              Deshacer pago (marcar pendiente)
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
