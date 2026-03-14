@@ -26,6 +26,9 @@ export default function ExportInvoice() {
     );
   }
 
+  const roundUp = (num: number) => Math.ceil(num * 100) / 100;
+  const formatEuros = (num: number) => `${roundUp(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+
   const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * item.basePrice, 0);
   const breakdown = calculateTaxBreakdown(subtotal, invoice.discount);
 
@@ -131,8 +134,8 @@ export default function ExportInvoice() {
                       <td className="py-5 px-2 border-r-2 border-white text-slate-600 align-top">{idx + 1}</td>
                       <td className="py-5 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
                       <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
-                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">€ {item.basePrice.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
-                      <td className="py-5 px-2 text-slate-800 font-bold align-top">€ {(item.quantity * item.basePrice).toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{formatEuros(item.basePrice)}</td>
+                      <td className="py-5 px-2 text-slate-800 font-bold align-top">{formatEuros(item.quantity * item.basePrice)}</td>
                     </tr>
                   ))}
                   {/* Fill empty space if few items for layout stability */}
@@ -162,30 +165,30 @@ export default function ExportInvoice() {
                   <div className="text-[13px] text-slate-600">
                     <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                       <span>Subtotal</span>
-                      <span>€ {breakdown.subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      <span>{formatEuros(breakdown.subtotal)}</span>
                     </div>
                     {invoice.discount > 0 && (
                       <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                         <span>Descuento</span>
-                        <span>-€ {invoice.discount.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                        <span>-{formatEuros(invoice.discount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                       <span>IRPF (15%)</span>
-                      <span className="text-red-600">-€ {breakdown.irpf.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-slate-600">{formatEuros(breakdown.irpf)}</span>
                     </div>
                     <div className="flex justify-between py-2 px-4 border-b border-slate-200 text-slate-800 font-medium">
                       <span>Base Imponible</span>
-                      <span>€ {breakdown.taxableBase.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      <span>{formatEuros(breakdown.taxableBase)}</span>
                     </div>
                     <div className="flex justify-between py-2 px-4 border-b border-slate-600">
                       <span>IGIC (7%)</span>
-                      <span>€ {breakdown.igic.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                      <span>{formatEuros(breakdown.igic)}</span>
                     </div>
                   </div>
                   <div className="text-slate-900 flex justify-between items-center py-4 px-4">
                     <span className="font-bold uppercase tracking-widest text-xs">Total</span>
-                    <span className="font-bold text-xl">€ {breakdown.total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+                    <span className="font-bold text-xl">{formatEuros(breakdown.total)}</span>
                   </div>
                 </div>
               </div>

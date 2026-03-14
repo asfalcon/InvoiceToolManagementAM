@@ -27,8 +27,9 @@ export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
 }
 
 export function formatCurrency(value: number, currency: string = "EUR"): string {
-  return value.toLocaleString("es-ES", {
-    style: "currency",
-    currency: currency,
-  });
+  const roundUp = (num: number) => Math.ceil(num * 100) / 100;
+  return `${roundUp(value).toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })} ${currency === "EUR" ? "€" : currency}`;
 }

@@ -90,7 +90,7 @@ export default function Dashboard() {
               <BarChart data={monthlySales}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} style={{ textTransform: 'capitalize' }} />
-                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `€${val}`} />
+                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val} €`} />
                 <Tooltip 
                   formatter={(value: number) => [formatCurrency(value), "Total"]}
                   cursor={{fill: '#f8fafc'}}

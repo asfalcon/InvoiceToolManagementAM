@@ -120,7 +120,7 @@ export default function ServicesManagement() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-muted-foreground">Precio Base</p>
-                  <p className="font-bold">{service.basePrice.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</p>
+                  <p className="font-bold">{formatCurrency(service.basePrice)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Tax Inc.</p>

@@ -51,7 +51,7 @@ export default function InvoicesList() {
     const clientName = getClientName(inv.clientId).toLowerCase();
     const number = inv.number.toLowerCase();
     const dateStr = new Date(inv.date).toLocaleDateString('es-ES');
-    const totalAmount = getInvoiceTotal(inv).toLocaleString("es-ES");
+    const totalAmount = formatCurrency(getInvoiceTotal(inv));
     const statusLabel = getStatusLabel(inv.status).toLowerCase();
     
     const matchesSearch = 
