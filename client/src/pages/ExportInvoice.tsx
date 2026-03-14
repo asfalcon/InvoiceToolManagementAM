@@ -29,27 +29,16 @@ export default function ExportInvoice() {
   const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * item.basePrice, 0);
   const breakdown = calculateTaxBreakdown(subtotal, invoice.discount);
 
-  // Función simplificada para imprimir
+  // Usamos la impresión nativa que genera PDFs perfectos vectoriales
+  // cambiando el título temporalmente para que el archivo por defecto sea el correcto.
   const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = `Factura_${invoice.number}`;
     window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
   };
 
-  // Función para descargar como HTML que se puede imprimir a PDF
-  const handleDownload = () => {
-    const element = invoiceRef.current;
-    if (!element) return;
-    
-    // Configuración para el PDF
-    const opt = {
-      margin:       [0, 0, 0, 0],
-      filename:     `Factura_${invoice.number}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    
-    html2pdf().from(element).set(opt).save();
-  };
+  const handleDownload = handlePrint;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -136,23 +125,23 @@ export default function ExportInvoice() {
                     <th className="py-4 px-2 w-[15%]">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm font-sans border-b border-slate-200">
+                <tbody className="text-sm font-sans">
                   {invoice.items.map((item, idx) => (
-                    <tr key={idx} className="border-b border-slate-100">
-                      <td className="py-5 px-2 border-r border-slate-200 text-slate-600 align-top">{idx + 1}</td>
-                      <td className="py-5 px-4 border-r border-slate-200 text-left text-slate-800 align-top font-medium">{item.description}</td>
-                      <td className="py-5 px-2 border-r border-slate-200 text-slate-700 align-top">{item.quantity}</td>
-                      <td className="py-5 px-2 border-r border-slate-200 text-slate-700 align-top">€ {item.basePrice.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
+                    <tr key={idx}>
+                      <td className="py-5 px-2 border-r-2 border-white text-slate-600 align-top">{idx + 1}</td>
+                      <td className="py-5 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
+                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
+                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">€ {item.basePrice.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
                       <td className="py-5 px-2 text-slate-800 font-bold align-top">€ {(item.quantity * item.basePrice).toLocaleString("es-ES", { minimumFractionDigits: 2 })}</td>
                     </tr>
                   ))}
                   {/* Fill empty space if few items for layout stability */}
                   {Array.from({ length: Math.max(1, 5 - invoice.items.length) }).map((_, idx) => (
-                    <tr key={`empty-${idx}`} className="border-b border-slate-100">
-                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
-                      <td className="py-6 px-4 border-r border-slate-200 text-transparent">.</td>
-                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
-                      <td className="py-6 px-2 border-r border-slate-200 text-transparent">.</td>
+                    <tr key={`empty-${idx}`}>
+                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-6 px-4 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
                       <td className="py-6 px-2 text-transparent">.</td>
                     </tr>
                   ))}

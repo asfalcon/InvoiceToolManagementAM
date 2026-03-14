@@ -250,7 +250,7 @@ export default function CreateInvoice() {
               </div>
               <div className="flex justify-between opacity-80">
                 <span>IRPF (15%)</span>
-                <span className="text-white">{formatCurrency(breakdown.irpf)}</span>
+                <span className="text-red-400">-{formatCurrency(breakdown.irpf)}</span>
               </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>
