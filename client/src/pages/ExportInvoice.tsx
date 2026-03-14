@@ -82,12 +82,8 @@ export default function ExportInvoice() {
             <div className="flex justify-between items-start mb-8">
               {/* Top Left: Company */}
               <div className="w-[48%]">
-                {company.logo ? (
-                  <img src={company.logo} alt="Logo Empresa" className="max-h-16 mb-4 object-contain" />
-                ) : (
-                  <div className="font-bold text-2xl text-slate-900 mb-2">{company.name}</div>
-                )}
-                <div className="text-sm leading-relaxed text-slate-700 font-sans">
+                <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-16 mb-4 object-contain" />
+                <div className="text-sm leading-relaxed text-slate-700 font-sans mt-4">
                   <span className="font-semibold">NIF:</span> {company.nif}<br />
                   {company.address}<br />
                   {company.zipCode} {company.city}, {company.country}<br />

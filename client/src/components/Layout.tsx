@@ -19,10 +19,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-card flex flex-col hidden md:flex print:hidden">
         <div className="p-6 flex items-center gap-3 border-b">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            F
-          </div>
-          <span className="font-semibold text-lg tracking-tight">FacturaPro</span>
+          <img src="/favicon.jpeg" alt="S&A Logo" className="w-8 h-8 rounded-md object-cover" />
+          <span className="font-semibold text-[15px] leading-tight tracking-tight">S&A - Financial management</span>
         </div>
         
         <nav className="flex-1 p-4 space-y-1">
