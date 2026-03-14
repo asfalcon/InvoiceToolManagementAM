@@ -206,27 +206,18 @@ export default function ExportInvoice() {
               </div>
             </div>
 
-            {/* Footer / Payment Info */}
-            <div className="mt-auto flex justify-between items-end pt-8">
-              <div className="text-[11px] text-slate-700 leading-relaxed font-mono">
-                <div className="mb-2 text-slate-800 font-bold font-sans text-xs">Información de Pago</div>
-                <div>Método: Transferencia Bancaria</div>
-                {company.bankCode && <div>Banco: {company.bankCode}</div>}
-                <div className="mt-1 font-semibold text-slate-900">IBAN: {company.bankAccount}</div>
-              </div>
-              
-              <div className="text-center w-[200px] flex flex-col items-center">
-                <div className="mb-2 h-16 flex items-end justify-center">
-                  {company.logo ? (
-                     <img src={company.logo} alt="Firma" className="max-h-12 object-contain opacity-80 mix-blend-multiply" />
-                  ) : (
-                     <div className="text-4xl text-slate-800 opacity-90 pb-2" style={{ fontFamily: "'Brush Script MT', cursive, serif" }}>
-                       {company.name.split(' ')[0]}
-                     </div>
-                  )}
+            {/* Footer / Payment Info & Legal */}
+            <div className="mt-auto pt-8 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
+              <div className="grid grid-cols-2 gap-12">
+                <div>
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
+                  <p className="mb-1">Método: Transferencia Bancaria</p>
+                  <p className="font-medium text-slate-800 mt-1">IBAN: {company.bankAccount}</p>
+                  {company.bankCode && <p className="mt-1">Banco: {company.bankCode}</p>}
                 </div>
-                <div className="w-full border-t border-slate-400 pt-2 text-[11px] text-slate-600 tracking-wider">
-                  Firma Autorizada
+                <div>
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
+                  <p className="text-justify leading-relaxed text-[9px]">{company.legalNotes}</p>
                 </div>
               </div>
             </div>
