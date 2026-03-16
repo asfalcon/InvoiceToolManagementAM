@@ -67,8 +67,10 @@ export default function CreateInvoice() {
   const subtotal = calculateSubtotal();
   const breakdown = calculateTaxBreakdown(subtotal, discount);
 
-  // Generate next invoice number
-  const nextInvoiceNumber = `FAC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`;
+  // Generate next invoice number based on YY1YYY format
+  // YY = last two digits of current year, YYY = progressive number starting at 001
+  const currentYear = new Date().getFullYear().toString().slice(-2);
+  const nextInvoiceNumber = `${currentYear}1${String(invoices.length + 1).padStart(3, '0')}`;
 
   const handleSave = () => {
     if (!selectedClientId) {
@@ -262,14 +264,6 @@ export default function CreateInvoice() {
                   className="bg-white/10 text-white placeholder:text-white/50 border-white/20 text-sm"
                 />
               </div>
-              <div className="flex justify-between opacity-80 pt-2">
-                <span>Base Imponible</span>
-                <span>{formatCurrency(breakdown.taxableBase)}</span>
-              </div>
-              <div className="flex justify-between opacity-80">
-                <span>IGIC (7%)</span>
-                <span className="text-green-400">+{formatCurrency(breakdown.igic)}</span>
-              </div>
               <Separator className="bg-white/10 my-3" />
               <div className="flex justify-between font-bold text-lg pt-2">
                 <span>Total</span>
@@ -290,10 +284,6 @@ export default function CreateInvoice() {
               <div className="space-y-2">
                 <Label className="text-sm">Fecha de Emisión</Label>
                 <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="text-sm" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Fecha de Vencimiento</Label>
-                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Notas</Label>

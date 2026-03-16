@@ -5,23 +5,17 @@ export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
   // IRPF: 15% del subtotal
   const irpf = base * 0.15;
 
-  // Aplicar descuento al subtotal + IRPF
-  const subtotalAfterIRPF = base + irpf;
+  // Total (Solo Subtotal - Descuento + IRPF según la nueva especificación)
   const finalDiscount = discount;
-  const taxableBase = subtotalAfterIRPF - finalDiscount;
-
-  // IGIC: 7% del subtotal + IRPF - descuento
-  const igic = taxableBase * 0.07;
-
-  // Total
-  const total = base + irpf - finalDiscount + igic;
+  const total = base - finalDiscount + irpf;
 
   return {
     subtotal: base,
     irpf,
     discount: finalDiscount,
-    taxableBase,
-    igic,
+    // Eliminamos IGIC y Base Imponible del cálculo, mantenemos 0 por compatibilidad de tipos
+    taxableBase: 0,
+    igic: 0,
     total,
   };
 }

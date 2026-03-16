@@ -37,7 +37,7 @@ const DEFAULT_CLIENTS: Client[] = [
 const DEFAULT_INVOICES: Invoice[] = [
   { 
     id: "1", 
-    number: "FAC-2024-001", 
+    number: "241001", 
     clientId: "1", 
     date: "2024-03-01", 
     dueDate: "2024-03-31", 

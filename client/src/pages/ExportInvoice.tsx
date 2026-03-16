@@ -76,9 +76,10 @@ export default function ExportInvoice() {
               <div className="w-[48%]">
                 <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-16 mb-4 object-contain" />
                 <div className="text-sm leading-relaxed text-slate-700 font-sans mt-4">
-                  <span className="font-semibold">NIF:</span> {company.nif}<br />
+                  <span className="font-bold text-slate-900">Admin+</span><br />
+                  {company.name}<br />
                   {company.address}<br />
-                  {company.zipCode} {company.city}, {company.country}<br />
+                  {company.zipCode} {company.city}, {company.province || company.country}<br />
                   {company.email && <span>{company.email}<br /></span>}
                   {company.phone && <span>{company.phone}</span>}
                 </div>
@@ -89,7 +90,8 @@ export default function ExportInvoice() {
                 <div className="text-[40px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-6">
                   FACTURA
                 </div>
-                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-widest font-semibold">Facturado a:</div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+                <div className="font-semibold text-sm text-slate-800 mb-6">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
                 <div className="font-bold text-lg text-slate-800 mb-1">{client.name}</div>
                 <div className="text-sm leading-relaxed text-slate-700 font-sans">
                   <span className="font-semibold">NIF:</span> {client.nif}<br />
@@ -106,23 +108,14 @@ export default function ExportInvoice() {
                 <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
                 <div className="font-semibold text-sm text-slate-800">{invoice.number}</div>
               </div>
-              <div>
-                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
-                <div className="font-semibold text-sm text-slate-800">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
-              </div>
-              <div>
-                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Vencimiento:</div>
-                <div className="font-semibold text-sm text-slate-800">{new Date(invoice.dueDate).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
-              </div>
             </div>
 
             {/* Items Table */}
             <div className="mb-8 flex-grow">
               <table className="w-full text-center border-collapse">
                 <thead>
-                  <tr className="bg-[#e6ddda] text-[#59514e] uppercase text-[10px] tracking-widest font-bold">
-                    <th className="py-4 px-2 border-r border-white w-[8%]">Nº</th>
-                    <th className="py-4 px-4 border-r border-white text-left w-[47%]">Descripción</th>
+                  <tr className="bg-[#bda193] text-black uppercase text-[10px] tracking-widest font-bold">
+                    <th className="py-4 px-4 border-r border-white text-left w-[55%]">Descripción</th>
                     <th className="py-4 px-2 border-r border-white w-[15%]">Cant.</th>
                     <th className="py-4 px-2 border-r border-white w-[15%]">Precio</th>
                     <th className="py-4 px-2 w-[15%]">Subtotal</th>
@@ -131,7 +124,6 @@ export default function ExportInvoice() {
                 <tbody className="text-sm font-sans">
                   {invoice.items.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="py-5 px-2 border-r-2 border-white text-slate-600 align-top">{idx + 1}</td>
                       <td className="py-5 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
                       <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
                       <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{formatEuros(item.basePrice)}</td>
@@ -141,7 +133,6 @@ export default function ExportInvoice() {
                   {/* Fill empty space if few items for layout stability */}
                   {Array.from({ length: Math.max(1, 5 - invoice.items.length) }).map((_, idx) => (
                     <tr key={`empty-${idx}`}>
-                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
                       <td className="py-6 px-4 border-r-2 border-white text-transparent">.</td>
                       <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
                       <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
@@ -173,22 +164,14 @@ export default function ExportInvoice() {
                         <span>-{formatEuros(invoice.discount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between py-2 px-4 border-b border-slate-200">
+                    <div className="flex justify-between py-2 px-4 text-slate-800">
                       <span>IRPF (15%)</span>
-                      <span className="text-slate-600">{formatEuros(breakdown.irpf)}</span>
-                    </div>
-                    <div className="flex justify-between py-2 px-4 border-b border-slate-200 text-slate-800 font-medium">
-                      <span>Base Imponible</span>
-                      <span>{formatEuros(breakdown.taxableBase)}</span>
-                    </div>
-                    <div className="flex justify-between py-2 px-4 border-b border-slate-600">
-                      <span>IGIC (7%)</span>
-                      <span>{formatEuros(breakdown.igic)}</span>
+                      <span>{formatEuros(breakdown.irpf)}</span>
                     </div>
                   </div>
-                  <div className="text-slate-900 flex justify-between items-center py-4 px-4">
-                    <span className="font-bold uppercase tracking-widest text-xs">Total</span>
-                    <span className="font-bold text-xl">{formatEuros(breakdown.total)}</span>
+                  <div className="bg-[#4d3c34] text-white flex justify-between items-center py-3 px-4 font-bold">
+                    <span className="uppercase tracking-widest text-xs">Total</span>
+                    <span className="text-lg">{formatEuros(breakdown.total)}</span>
                   </div>
                 </div>
               </div>
