@@ -9,8 +9,8 @@ export default function Dashboard() {
 
   // Calcular totales
   const getInvoiceTotal = (invoice: any) => {
-    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * item.basePrice), 0);
-    return calculateTaxBreakdown(subtotal, invoice.discount || 0).total;
+    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
+    return calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0)).total;
   };
 
   const totalSales = invoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
-import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
+import { calculateTaxBreakdown, formatCurrency, toNum } from "@/lib/taxCalculations";
 import { InvoiceItem, Invoice } from "@/types";
 
 export default function CreateInvoice() {
@@ -63,7 +63,7 @@ export default function CreateInvoice() {
     }
   };
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * item.basePrice), 0);
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * toNum(item.basePrice)), 0);
   const subtotal = calculateSubtotal();
   const breakdown = calculateTaxBreakdown(subtotal, discount);
 
@@ -83,19 +83,17 @@ export default function CreateInvoice() {
       return;
     }
 
-    const newInvoice: Invoice = {
-      id: Date.now().toString(),
+    const newInvoice = {
       number: nextInvoiceNumber,
       clientId: selectedClientId,
       date: issueDate,
-      dueDate: dueDate,
+      dueDate: "",
       items: items,
       discount: discount,
       notes: notes,
-      status: "pending"
+      status: "pending" as const,
     };
 
-    // Save using context which uses local storage
     addInvoice(newInvoice);
 
     toast({
@@ -103,7 +101,6 @@ export default function CreateInvoice() {
       description: `La factura ${nextInvoiceNumber} se ha creado correctamente.`,
     });
     
-    // Redirect without full reload to maintain context state
     setLocation("/");
   };
 
@@ -227,7 +224,7 @@ export default function CreateInvoice() {
 
                   <div className="pt-2 border-t text-right">
                     <span className="text-sm font-bold">
-                      Subtotal: {formatCurrency(item.quantity * item.basePrice)}
+                      Subtotal: {formatCurrency(item.quantity * toNum(item.basePrice))}
                     </span>
                   </div>
                 </div>

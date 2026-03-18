@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Share2, ArrowLeft, Printer, Mail, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/contexts/SettingsContext";
-import { calculateTaxBreakdown } from "@/lib/taxCalculations";
+import { calculateTaxBreakdown, toNum } from "@/lib/taxCalculations";
 import { useRef } from "react";
-import html2pdf from "html2pdf.js";
 
 export default function ExportInvoice() {
   const { id } = useParams();
@@ -29,8 +28,8 @@ export default function ExportInvoice() {
   const roundUp = (num: number) => Math.ceil(num * 100) / 100;
   const formatEuros = (num: number) => `${roundUp(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
-  const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * item.basePrice, 0);
-  const breakdown = calculateTaxBreakdown(subtotal, invoice.discount);
+  const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * toNum(item.basePrice), 0);
+  const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
 
   // Usamos la impresión nativa que genera PDFs perfectos vectoriales
   // cambiando el título temporalmente para que el archivo por defecto sea el correcto.

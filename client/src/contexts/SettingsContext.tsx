@@ -1,5 +1,77 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { CompanySettings, ThemeSettings, Service, Client, Invoice } from "@/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+export type CompanySettings = {
+  name: string;
+  nif: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  zipCode: string;
+  country: string;
+  province?: string;
+  website: string;
+  bankAccount: string;
+  bankCode: string;
+  legalNotes: string;
+};
+
+export type ThemeSettings = {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  fontFamily: string;
+  fontSize: number;
+};
+
+export type Service = {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: string | number;
+  taxIncrement: string | number;
+  category: string;
+};
+
+export type Client = {
+  id: string;
+  name: string;
+  nif: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  zipCode: string;
+  country: string;
+  billingType: "standard" | "simplified";
+  customFields: Record<string, string>;
+  serviceRates: Record<string, number>;
+  customFieldDefinitions?: Array<{ key: string; label: string }>;
+};
+
+export type InvoiceItem = {
+  id: string;
+  invoiceId?: string;
+  serviceId?: string;
+  description: string;
+  quantity: number;
+  basePrice: string | number;
+  taxIncrement: string | number;
+};
+
+export type Invoice = {
+  id: string;
+  number: string;
+  clientId: string;
+  date: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  discount: string | number;
+  notes: string;
+  status: "draft" | "pending" | "paid" | "overdue";
+};
 
 const DEFAULT_COMPANY: CompanySettings = {
   name: "Tu Empresa S.L.",
@@ -10,6 +82,7 @@ const DEFAULT_COMPANY: CompanySettings = {
   city: "Madrid",
   zipCode: "28001",
   country: "España",
+  province: "",
   website: "www.tuempresa.com",
   bankAccount: "ES00 0000 0000 0000 0000 0000",
   bankCode: "XXXESEXX",
@@ -24,167 +97,186 @@ const DEFAULT_THEME: ThemeSettings = {
   fontSize: 14,
 };
 
-const DEFAULT_SERVICES: Service[] = [
-  { id: "1", name: "Mantenimiento Mensual", description: "Servicio de mantenimiento técnico", basePrice: 150, taxIncrement: 0, category: "Mantenimiento" },
-  { id: "2", name: "Consultoría IT", description: "Hora de consultoría tecnológica", basePrice: 80, taxIncrement: 0, category: "Consultoría" },
-  { id: "3", name: "Desarrollo Web", description: "Desarrollo de funcionalidades", basePrice: 1200, taxIncrement: 5, category: "Desarrollo" },
-];
-
-const DEFAULT_CLIENTS: Client[] = [
-  { id: "1", name: "Acme Corp", nif: "B87654321", email: "factura@acme.com", phone: "+34 931 234 567", address: "Polígono Industrial", city: "Barcelona", zipCode: "08001", country: "España", billingType: "standard", customFields: {}, serviceRates: {}, customFieldDefinitions: [] },
-];
-
-const DEFAULT_INVOICES: Invoice[] = [
-  { 
-    id: "1", 
-    number: "241001", 
-    clientId: "1", 
-    date: "2024-03-01", 
-    dueDate: "2024-03-31", 
-    items: [
-      { id: "i1", description: "Mantenimiento Mensual", quantity: 1, basePrice: 150, taxIncrement: 0 }
-    ], 
-    discount: 0, 
-    notes: "", 
-    status: "paid" 
-  }
-];
-
 type SettingsContextType = {
   company: CompanySettings;
   saveCompany: (data: CompanySettings) => void;
   theme: ThemeSettings;
   saveTheme: (data: ThemeSettings) => void;
   services: Service[];
-  addService: (service: Service) => void;
+  addService: (service: Partial<Service>) => void;
   updateService: (id: string, data: Partial<Service>) => void;
   deleteService: (id: string) => void;
   clients: Client[];
-  addClient: (client: Client) => void;
+  addClient: (client: Partial<Client>) => void;
   updateClient: (id: string, data: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   invoices: Invoice[];
-  addInvoice: (invoice: Invoice) => void;
+  addInvoice: (invoice: Omit<Invoice, "id">) => void;
   updateInvoice: (id: string, data: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
   markInvoiceAsPaid: (id: string) => void;
+  isLoading: boolean;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [company, setCompany] = useState<CompanySettings>(() => {
-    const saved = localStorage.getItem("company-settings");
-    return saved ? JSON.parse(saved) : DEFAULT_COMPANY;
+  const qc = useQueryClient();
+  const [company, setCompany] = useState<CompanySettings>(DEFAULT_COMPANY);
+  const [theme, setTheme] = useState<ThemeSettings>(DEFAULT_THEME);
+
+  const { data: companyData, isLoading: loadingCompany } = useQuery<CompanySettings>({
+    queryKey: ["/api/settings/company"],
+    staleTime: Infinity,
   });
-  
-  const [theme, setTheme] = useState<ThemeSettings>(() => {
-    const saved = localStorage.getItem("theme-settings");
-    return saved ? JSON.parse(saved) : DEFAULT_THEME;
+
+  const { data: themeData, isLoading: loadingTheme } = useQuery<ThemeSettings>({
+    queryKey: ["/api/settings/theme"],
+    staleTime: Infinity,
   });
-  
-  const [services, setServices] = useState<Service[]>(() => {
-    const saved = localStorage.getItem("services");
-    return saved ? JSON.parse(saved) : DEFAULT_SERVICES;
+
+  const { data: servicesData = [], isLoading: loadingServices } = useQuery<Service[]>({
+    queryKey: ["/api/services"],
+    staleTime: Infinity,
   });
-  
-  const [clients, setClients] = useState<Client[]>(() => {
-    const saved = localStorage.getItem("clients");
-    return saved ? JSON.parse(saved) : DEFAULT_CLIENTS;
+
+  const { data: clientsData = [], isLoading: loadingClients } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
+    staleTime: Infinity,
   });
-  
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const saved = localStorage.getItem("invoices");
-    return saved ? JSON.parse(saved) : DEFAULT_INVOICES;
+
+  const { data: invoicesData = [], isLoading: loadingInvoices } = useQuery<Invoice[]>({
+    queryKey: ["/api/invoices"],
+    staleTime: Infinity,
   });
+
+  const isLoading = loadingCompany || loadingTheme || loadingServices || loadingClients || loadingInvoices;
 
   useEffect(() => {
-    applyTheme(theme);
-  }, []);
+    if (companyData) setCompany(companyData);
+  }, [companyData]);
 
-  const saveCompany = (data: CompanySettings) => {
-    setCompany(data);
-    localStorage.setItem("company-settings", JSON.stringify(data));
-  };
+  useEffect(() => {
+    if (themeData) {
+      setTheme(themeData);
+      applyTheme(themeData);
+    }
+  }, [themeData]);
 
-  const saveTheme = (data: ThemeSettings) => {
-    setTheme(data);
-    localStorage.setItem("theme-settings", JSON.stringify(data));
-    applyTheme(data);
-  };
+  const saveCompanyMutation = useMutation({
+    mutationFn: (data: CompanySettings) => apiRequest("POST", "/api/settings/company", data).then(r => r.json()),
+    onSuccess: (data) => {
+      setCompany(data);
+      qc.invalidateQueries({ queryKey: ["/api/settings/company"] });
+    },
+  });
 
-  const saveServices = (data: Service[]) => {
-    setServices(data);
-    localStorage.setItem("services", JSON.stringify(data));
-  };
+  const saveThemeMutation = useMutation({
+    mutationFn: (data: ThemeSettings) => apiRequest("POST", "/api/settings/theme", data).then(r => r.json()),
+    onSuccess: (data) => {
+      setTheme(data);
+      applyTheme(data);
+      qc.invalidateQueries({ queryKey: ["/api/settings/theme"] });
+    },
+  });
 
-  const saveClients = (data: Client[]) => {
-    setClients(data);
-    localStorage.setItem("clients", JSON.stringify(data));
-  };
+  const addServiceMutation = useMutation({
+    mutationFn: (data: Partial<Service>) => apiRequest("POST", "/api/services", {
+      name: data.name, description: data.description, basePrice: String(data.basePrice || 0),
+      taxIncrement: String(data.taxIncrement || 0), category: data.category || "",
+    }).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/services"] }),
+  });
 
-  const saveInvoices = (data: Invoice[]) => {
-    setInvoices(data);
-    localStorage.setItem("invoices", JSON.stringify(data));
-  };
+  const updateServiceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Service> }) =>
+      apiRequest("PATCH", `/api/services/${id}`, {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.basePrice !== undefined && { basePrice: String(data.basePrice) }),
+        ...(data.taxIncrement !== undefined && { taxIncrement: String(data.taxIncrement) }),
+        ...(data.category !== undefined && { category: data.category }),
+      }).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/services"] }),
+  });
 
-  const addService = (service: Service) => {
-    const updated = [...services, { ...service, id: Date.now().toString() }];
-    saveServices(updated);
-  };
+  const deleteServiceMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/services/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/services"] }),
+  });
 
-  const updateService = (id: string, data: Partial<Service>) => {
-    const updated = services.map(s => s.id === id ? { ...s, ...data } : s);
-    saveServices(updated);
-  };
+  const addClientMutation = useMutation({
+    mutationFn: (data: Partial<Client>) => apiRequest("POST", "/api/clients", {
+      name: data.name, nif: data.nif, email: data.email, phone: data.phone || "",
+      address: data.address || "", city: data.city || "", zipCode: data.zipCode || "",
+      country: data.country || "España", billingType: data.billingType || "standard",
+      customFields: data.customFields || {}, serviceRates: data.serviceRates || {},
+      customFieldDefinitions: data.customFieldDefinitions || [],
+    }).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/clients"] }),
+  });
 
-  const deleteService = (id: string) => {
-    const updated = services.filter(s => s.id !== id);
-    saveServices(updated);
-  };
+  const updateClientMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Client> }) =>
+      apiRequest("PATCH", `/api/clients/${id}`, data).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/clients"] }),
+  });
 
-  const addClient = (client: Client) => {
-    const updated = [...clients, { ...client, id: Date.now().toString() }];
-    saveClients(updated);
-  };
+  const deleteClientMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/clients/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/clients"] }),
+  });
 
-  const updateClient = (id: string, data: Partial<Client>) => {
-    const updated = clients.map(c => c.id === id ? { ...c, ...data } : c);
-    saveClients(updated);
-  };
+  const addInvoiceMutation = useMutation({
+    mutationFn: (invoice: Omit<Invoice, "id">) => apiRequest("POST", "/api/invoices", {
+      number: invoice.number, clientId: invoice.clientId, date: invoice.date,
+      dueDate: invoice.dueDate || "", discount: String(invoice.discount || 0),
+      notes: invoice.notes || "", status: invoice.status || "pending",
+      items: invoice.items.map(item => ({
+        serviceId: item.serviceId,
+        description: item.description,
+        quantity: item.quantity,
+        basePrice: String(item.basePrice),
+        taxIncrement: String(item.taxIncrement || 0),
+      })),
+    }).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/invoices"] }),
+  });
 
-  const deleteClient = (id: string) => {
-    const updated = clients.filter(c => c.id !== id);
-    saveClients(updated);
-  };
+  const updateInvoiceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Invoice> }) =>
+      apiRequest("PATCH", `/api/invoices/${id}`, data).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/invoices"] }),
+  });
 
-  const addInvoice = (invoice: Invoice) => {
-    const updated = [...invoices, { ...invoice, id: invoice.id || Date.now().toString() }];
-    saveInvoices(updated);
-  };
+  const deleteInvoiceMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/invoices/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/invoices"] }),
+  });
 
-  const updateInvoice = (id: string, data: Partial<Invoice>) => {
-    const updated = invoices.map(i => i.id === id ? { ...i, ...data } : i);
-    saveInvoices(updated);
-  };
-
-  const deleteInvoice = (id: string) => {
-    const updated = invoices.filter(i => i.id !== id);
-    saveInvoices(updated);
-  };
-
-  const markInvoiceAsPaid = (id: string) => {
-    const updated = invoices.map(i => i.id === id ? { ...i, status: "paid" as const } : i);
-    saveInvoices(updated);
+  const value: SettingsContextType = {
+    company,
+    saveCompany: (data) => saveCompanyMutation.mutate(data),
+    theme,
+    saveTheme: (data) => saveThemeMutation.mutate(data),
+    services: servicesData,
+    addService: (data) => addServiceMutation.mutate(data),
+    updateService: (id, data) => updateServiceMutation.mutate({ id, data }),
+    deleteService: (id) => deleteServiceMutation.mutate(id),
+    clients: clientsData,
+    addClient: (data) => addClientMutation.mutate(data),
+    updateClient: (id, data) => updateClientMutation.mutate({ id, data }),
+    deleteClient: (id) => deleteClientMutation.mutate(id),
+    invoices: invoicesData,
+    addInvoice: (invoice) => addInvoiceMutation.mutate(invoice),
+    updateInvoice: (id, data) => updateInvoiceMutation.mutate({ id, data }),
+    deleteInvoice: (id) => deleteInvoiceMutation.mutate(id),
+    markInvoiceAsPaid: (id) => updateInvoiceMutation.mutate({ id, data: { status: "paid" } }),
+    isLoading,
   };
 
   return (
-    <SettingsContext.Provider value={{
-      company, saveCompany, theme, saveTheme,
-      services, addService, updateService, deleteService,
-      clients, addClient, updateClient, deleteClient,
-      invoices, addInvoice, updateInvoice, deleteInvoice, markInvoiceAsPaid
-    }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

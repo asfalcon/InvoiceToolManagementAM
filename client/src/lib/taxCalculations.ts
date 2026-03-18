@@ -1,11 +1,11 @@
+export function toNum(value: string | number | undefined | null): number {
+  if (value === null || value === undefined) return 0;
+  return typeof value === "string" ? parseFloat(value) || 0 : value;
+}
+
 export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
-  // Subtotal base
   const base = subtotal;
-
-  // IRPF: 15% del subtotal
   const irpf = base * 0.15;
-
-  // Total (Solo Subtotal - Descuento + IRPF según la nueva especificación)
   const finalDiscount = discount;
   const total = base - finalDiscount + irpf;
 
@@ -13,16 +13,16 @@ export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
     subtotal: base,
     irpf,
     discount: finalDiscount,
-    // Eliminamos IGIC y Base Imponible del cálculo, mantenemos 0 por compatibilidad de tipos
     taxableBase: 0,
     igic: 0,
     total,
   };
 }
 
-export function formatCurrency(value: number, currency: string = "EUR"): string {
-  const roundUp = (num: number) => Math.ceil(num * 100) / 100;
-  return `${roundUp(value).toLocaleString("es-ES", {
+export function formatCurrency(value: number | string, currency: string = "EUR"): string {
+  const num = toNum(value);
+  const roundUp = (n: number) => Math.ceil(n * 100) / 100;
+  return `${roundUp(num).toLocaleString("es-ES", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })} ${currency === "EUR" ? "€" : currency}`;

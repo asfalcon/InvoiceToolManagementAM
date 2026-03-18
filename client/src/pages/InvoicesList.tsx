@@ -41,8 +41,8 @@ export default function InvoicesList() {
   };
 
   const getInvoiceTotal = (invoice: any) => {
-    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * item.basePrice), 0);
-    const breakdown = calculateTaxBreakdown(subtotal, invoice.discount || 0);
+    const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
+    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
     return breakdown.total;
   };
 

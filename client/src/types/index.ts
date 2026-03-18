@@ -2,8 +2,8 @@ export type Service = {
   id: string;
   name: string;
   description: string;
-  basePrice: number;
-  taxIncrement: number; // Porcentaje de incremento por impuestos
+  basePrice: string | number;
+  taxIncrement: string | number;
   category: string;
 };
 
@@ -17,19 +17,20 @@ export type Client = {
   city: string;
   zipCode: string;
   country: string;
-  billingType: "standard" | "simplified"; // Factura estándar o simplificada
-  customFields: Record<string, string>; // Campos personalizados
-  serviceRates: Record<string, number>; // Tarifas especiales por servicio
+  billingType: "standard" | "simplified";
+  customFields: Record<string, string>;
+  serviceRates: Record<string, number>;
   customFieldDefinitions?: Array<{ key: string; label: string }>;
 };
 
 export type InvoiceItem = {
   id: string;
+  invoiceId?: string;
   serviceId?: string;
   description: string;
   quantity: number;
-  basePrice: number;
-  taxIncrement: number;
+  basePrice: string | number;
+  taxIncrement: string | number;
 };
 
 export type Invoice = {
@@ -39,7 +40,7 @@ export type Invoice = {
   date: string;
   dueDate: string;
   items: InvoiceItem[];
-  discount: number; // Descuento en porcentaje o cantidad fija
+  discount: string | number;
   notes: string;
   status: "draft" | "pending" | "paid" | "overdue";
 };
@@ -53,10 +54,11 @@ export type CompanySettings = {
   city: string;
   zipCode: string;
   country: string;
+  province?: string;
   website: string;
   bankAccount: string;
   bankCode: string;
-  logo?: string; // Base64 o URL del logo
+  logo?: string;
   legalNotes: string;
 };
 
