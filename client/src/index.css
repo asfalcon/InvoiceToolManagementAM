@@ -119,6 +119,54 @@
   }
 }
 
+/* ===== PRINT / PDF SINGLE PAGE ===== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+  }
+
+  /* Ocultar todo excepto la factura */
+  body > * {
+    display: none !important;
+  }
+
+  /* Mostrar solo el contenedor de la factura */
+  .invoice-print-root {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    background: white;
+  }
+
+  .invoice-a4 {
+    width: 210mm !important;
+    min-height: unset !important;
+    height: 297mm !important;
+    padding: 10mm 12mm !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    transform-origin: top left;
+  }
+
+  /* No saltos de página dentro de la factura */
+  table, thead, tbody, tr, td, th {
+    page-break-inside: avoid !important;
+  }
+}
+
 /* Custom Scrollbar for dense data views */
 ::-webkit-scrollbar {
   width: 8px;

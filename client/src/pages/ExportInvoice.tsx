@@ -31,13 +31,24 @@ export default function ExportInvoice() {
   const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * toNum(item.basePrice), 0);
   const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
 
-  // Usamos la impresión nativa que genera PDFs perfectos vectoriales
-  // cambiando el título temporalmente para que el archivo por defecto sea el correcto.
   const handlePrint = () => {
+    if (!invoiceRef.current) return;
+
     const originalTitle = document.title;
     document.title = `Factura_${invoice.number}`;
+
+    // Crear portal temporal directamente en body para aislar impresión en 1 página
+    const portal = document.createElement("div");
+    portal.className = "invoice-print-root";
+    const clone = invoiceRef.current.cloneNode(true) as HTMLElement;
+    clone.className = "invoice-a4 bg-white text-slate-900 font-sans flex flex-col";
+    portal.appendChild(clone);
+    document.body.appendChild(portal);
+
     window.print();
-    setTimeout(() => { document.title = originalTitle; }, 500);
+
+    document.body.removeChild(portal);
+    setTimeout(() => { document.title = originalTitle; }, 300);
   };
 
   const handleDownload = handlePrint;
@@ -67,14 +78,14 @@ export default function ExportInvoice() {
           {/* A4 Invoice Document */}
           <div 
             ref={invoiceRef}
-            className="bg-white text-slate-900 shadow-xl print:shadow-none p-12 sm:p-16 w-[210mm] min-h-[297mm] text-[12px] flex flex-col font-sans"
+            className="bg-white text-slate-900 shadow-xl print:shadow-none p-10 w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-col font-sans overflow-hidden"
           >
             {/* Header: Company & Client Info */}
-            <div className="flex justify-between items-start mb-8">
+            <div className="flex justify-between items-start mb-5">
               {/* Top Left: Company */}
               <div className="w-[48%]">
-                <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-16 mb-4 object-contain" />
-                <div className="text-sm leading-relaxed text-slate-700 font-sans mt-4">
+                <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-14 mb-2 object-contain" />
+                <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
                   <span className="font-bold text-slate-900">Admin+</span><br />
                   {company.name}<br />
                   {company.address}<br />
@@ -86,13 +97,13 @@ export default function ExportInvoice() {
 
               {/* Top Right: Client */}
               <div className="w-[48%] text-right">
-                <div className="text-[40px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-6">
+                <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-3">
                   FACTURA
                 </div>
-                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
-                <div className="font-semibold text-sm text-slate-800 mb-6">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
-                <div className="font-bold text-lg text-slate-800 mb-1">{client.name}</div>
-                <div className="text-sm leading-relaxed text-slate-700 font-sans">
+                <div className="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+                <div className="font-semibold text-sm text-slate-800 mb-3">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
+                <div className="font-bold text-base text-slate-800 mb-1">{client.name}</div>
+                <div className="text-xs leading-relaxed text-slate-700 font-sans">
                   <span className="font-semibold">NIF:</span> {client.nif}<br />
                   {client.address}<br />
                   {client.zipCode} {client.city}, {client.country}<br />
@@ -102,7 +113,7 @@ export default function ExportInvoice() {
             </div>
 
             {/* Invoice Meta */}
-            <div className="flex justify-start gap-12 mb-10 border-b border-t border-slate-200 py-4">
+            <div className="flex justify-start gap-12 mb-5 border-b border-t border-slate-200 py-3">
               <div>
                 <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
                 <div className="font-semibold text-sm text-slate-800">{invoice.number}</div>
@@ -110,32 +121,32 @@ export default function ExportInvoice() {
             </div>
 
             {/* Items Table */}
-            <div className="mb-8 flex-grow">
+            <div className="mb-4 flex-grow">
               <table className="w-full text-center border-collapse">
                 <thead>
                   <tr className="bg-[#bda193] text-black uppercase text-[10px] tracking-widest font-bold">
-                    <th className="py-4 px-4 border-r border-white text-left w-[55%]">Descripción</th>
-                    <th className="py-4 px-2 border-r border-white w-[15%]">Cant.</th>
-                    <th className="py-4 px-2 border-r border-white w-[15%]">Precio</th>
-                    <th className="py-4 px-2 w-[15%]">Subtotal</th>
+                    <th className="py-2.5 px-4 border-r border-white text-left w-[55%]">Descripción</th>
+                    <th className="py-2.5 px-2 border-r border-white w-[15%]">Cant.</th>
+                    <th className="py-2.5 px-2 border-r border-white w-[15%]">Precio</th>
+                    <th className="py-2.5 px-2 w-[15%]">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm font-sans">
                   {invoice.items.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="py-5 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
-                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
-                      <td className="py-5 px-2 border-r-2 border-white text-slate-700 align-top">{formatEuros(item.basePrice)}</td>
-                      <td className="py-5 px-2 text-slate-800 font-bold align-top">{formatEuros(item.quantity * item.basePrice)}</td>
+                      <td className="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
+                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
+                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">{formatEuros(toNum(item.basePrice))}</td>
+                      <td className="py-3 px-2 text-slate-800 font-bold align-top">{formatEuros(item.quantity * toNum(item.basePrice))}</td>
                     </tr>
                   ))}
-                  {/* Fill empty space if few items for layout stability */}
-                  {Array.from({ length: Math.max(1, 5 - invoice.items.length) }).map((_, idx) => (
+                  {/* Filas vacías de relleno reducidas */}
+                  {Array.from({ length: Math.max(0, 3 - invoice.items.length) }).map((_, idx) => (
                     <tr key={`empty-${idx}`}>
-                      <td className="py-6 px-4 border-r-2 border-white text-transparent">.</td>
-                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
-                      <td className="py-6 px-2 border-r-2 border-white text-transparent">.</td>
-                      <td className="py-6 px-2 text-transparent">.</td>
+                      <td className="py-3 px-4 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-3 px-2 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-3 px-2 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-3 px-2 text-transparent">.</td>
                     </tr>
                   ))}
                 </tbody>
@@ -177,8 +188,8 @@ export default function ExportInvoice() {
             </div>
 
             {/* Footer / Payment Info & Legal */}
-            <div className="mt-auto pt-8 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
-              <div className="grid grid-cols-2 gap-12">
+            <div className="mt-auto pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
+              <div className="grid grid-cols-2 gap-8">
                 <div>
                   <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
                   <p className="mb-1">Método: Transferencia Bancaria</p>
