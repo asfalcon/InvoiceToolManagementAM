@@ -214,18 +214,20 @@ export default function ExportInvoice() {
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
                 <span className="text-sm text-slate-600">Estado Actual</span>
                 <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  invoice.status === 'paid'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : invoice.status === 'draft'
+                    ? 'bg-slate-100 text-slate-700'
+                    : 'bg-amber-100 text-amber-700'
                 }`}>
-                  {invoice.status === 'paid' ? 'Pagada' : 'Pendiente'}
+                  {invoice.status === 'paid' ? 'Pagada' : invoice.status === 'draft' ? 'Borrador' : 'Pendiente'}
                 </span>
               </div>
               
               {invoice.status !== 'paid' ? (
                 <Button 
                   className="w-full bg-emerald-600 hover:bg-emerald-700" 
-                  onClick={() => {
-                    markInvoiceAsPaid(invoice.id);
-                  }}
+                  onClick={() => markInvoiceAsPaid(invoice.id)}
                 >
                   Marcar como Pagada
                 </Button>
@@ -233,13 +235,22 @@ export default function ExportInvoice() {
                 <Button 
                   variant="outline"
                   className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700" 
-                  onClick={() => {
-                    updateInvoice(invoice.id, { status: 'pending' });
-                  }}
+                  onClick={() => updateInvoice(invoice.id, { status: 'pending' })}
                 >
                   Deshacer Pago
                 </Button>
               )}
+
+              <Button
+                variant="outline"
+                className="w-full text-slate-600 border-slate-300 hover:bg-slate-50"
+                onClick={() => {
+                  updateInvoice(invoice.id, { status: 'draft' });
+                  setLocation(`/edit/${invoice.id}`);
+                }}
+              >
+                Factura a borrador
+              </Button>
             </CardContent>
           </Card>
           

@@ -22,6 +22,7 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/" component={InvoicesList} />
         <Route path="/create" component={CreateInvoice} />
+        <Route path="/edit/:id" component={CreateInvoice} />
         <Route path="/clients" component={ClientsManagement} />
         <Route path="/services" component={ServicesManagement} />
         <Route path="/settings" component={Settings} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,17 +15,22 @@ import { InvoiceItem, Invoice } from "@/types";
 
 export default function CreateInvoice() {
   const [, setLocation] = useLocation();
+  const { id: editId } = useParams<{ id?: string }>();
   const { toast } = useToast();
-  const { services, clients, addInvoice, invoices } = useSettings();
+  const { services, clients, addInvoice, updateInvoice, invoices } = useSettings();
 
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }
-  ]);
-  const [discount, setDiscount] = useState(0);
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
-  const [notes, setNotes] = useState("");
+  const draftInvoice = editId ? invoices.find(i => i.id === editId && i.status === 'draft') : null;
+  const isEditing = !!draftInvoice;
+
+  const [selectedClientId, setSelectedClientId] = useState<string>(draftInvoice?.clientId ?? "");
+  const [items, setItems] = useState<InvoiceItem[]>(
+    draftInvoice?.items?.length
+      ? draftInvoice.items.map(item => ({ ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement) }))
+      : [{ id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }]
+  );
+  const [discount, setDiscount] = useState(draftInvoice ? toNum(draftInvoice.discount) : 0);
+  const [issueDate, setIssueDate] = useState(draftInvoice?.date ?? new Date().toISOString().split("T")[0]);
+  const [notes, setNotes] = useState(draftInvoice?.notes ?? "");
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
@@ -83,24 +88,71 @@ export default function CreateInvoice() {
       return;
     }
 
-    const newInvoice = {
-      number: nextInvoiceNumber,
-      clientId: selectedClientId,
-      date: issueDate,
-      dueDate: "",
-      items: items,
-      discount: discount,
-      notes: notes,
-      status: "pending" as const,
-    };
-
-    addInvoice(newInvoice);
-
-    toast({
-      title: "Factura guardada",
-      description: `La factura ${nextInvoiceNumber} se ha creado correctamente.`,
-    });
+    if (isEditing && draftInvoice) {
+      updateInvoice(draftInvoice.id, {
+        clientId: selectedClientId,
+        date: issueDate,
+        items,
+        discount,
+        notes,
+        status: "pending" as const,
+      });
+      toast({
+        title: "Factura actualizada",
+        description: `La factura ${draftInvoice.number} se ha guardado y marcado como pendiente.`,
+      });
+    } else {
+      const newInvoice = {
+        number: nextInvoiceNumber,
+        clientId: selectedClientId,
+        date: issueDate,
+        dueDate: "",
+        items,
+        discount,
+        notes,
+        status: "pending" as const,
+      };
+      addInvoice(newInvoice);
+      toast({
+        title: "Factura guardada",
+        description: `La factura ${nextInvoiceNumber} se ha creado correctamente.`,
+      });
+    }
     
+    setLocation("/");
+  };
+
+  const handleSaveDraft = () => {
+    if (!selectedClientId) {
+      toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
+      return;
+    }
+
+    if (isEditing && draftInvoice) {
+      updateInvoice(draftInvoice.id, {
+        clientId: selectedClientId,
+        date: issueDate,
+        items,
+        discount,
+        notes,
+        status: "draft" as const,
+      });
+      toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` });
+    } else {
+      const newInvoice = {
+        number: nextInvoiceNumber,
+        clientId: selectedClientId,
+        date: issueDate,
+        dueDate: "",
+        items,
+        discount,
+        notes,
+        status: "draft" as const,
+      };
+      addInvoice(newInvoice);
+      toast({ title: "Borrador guardado", description: `La factura ${nextInvoiceNumber} se ha guardado como borrador.` });
+    }
+
     setLocation("/");
   };
 
@@ -111,8 +163,12 @@ export default function CreateInvoice() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Crear Factura</h1>
-          <p className="text-muted-foreground mt-1">Facturación en euros con IRPF, IGIC y descuentos.</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isEditing ? `Editar Borrador ${draftInvoice?.number}` : "Crear Factura"}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con IRPF y descuentos."}
+          </p>
         </div>
       </div>
 
@@ -276,7 +332,7 @@ export default function CreateInvoice() {
             <CardContent className="space-y-4">
                <div className="space-y-2">
                 <Label className="text-sm">Número de Factura</Label>
-                <Input value={nextInvoiceNumber} disabled className="text-sm bg-gray-50" />
+                <Input value={isEditing ? draftInvoice!.number : nextInvoiceNumber} disabled className="text-sm bg-gray-50" />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Fecha de Emisión</Label>
@@ -287,14 +343,23 @@ export default function CreateInvoice() {
                 <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas adicionales..." className="resize-none text-sm" rows={2} />
               </div>
             </CardContent>
-            <CardFooter className="bg-gray-50/50 border-t p-4 flex gap-2">
-              <Button variant="outline" className="flex-1 bg-white text-sm" onClick={() => setLocation("/")}>
-                <X className="w-4 h-4 mr-2" />
-                Cancelar
-              </Button>
-              <Button data-testid="btn-save-invoice" className="flex-1 text-sm" onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" />
-                Guardar
+            <CardFooter className="bg-gray-50/50 border-t p-4 flex flex-col gap-2">
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" className="flex-1 bg-white text-sm" onClick={() => setLocation("/")}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button data-testid="btn-save-invoice" className="flex-1 text-sm" onClick={handleSave}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {isEditing ? "Guardar Factura" : "Guardar"}
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full text-sm text-slate-600 border-slate-300 hover:bg-slate-50"
+                onClick={handleSaveDraft}
+              >
+                Guardar como borrador
               </Button>
             </CardFooter>
           </Card>

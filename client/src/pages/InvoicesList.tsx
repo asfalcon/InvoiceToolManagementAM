@@ -120,9 +120,6 @@ export default function InvoicesList() {
                 <DropdownMenuItem onClick={() => setStatusFilter("pending")} className="cursor-pointer">
                   <Badge variant="outline" className="mr-2 bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">Pendiente</Badge>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("overdue")} className="cursor-pointer">
-                  <Badge variant="outline" className="mr-2 bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100">Vencida</Badge>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setStatusFilter("draft")} className="cursor-pointer">
                   <Badge variant="outline" className="mr-2 bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-100">Borrador</Badge>
                 </DropdownMenuItem>
@@ -175,6 +172,11 @@ export default function InvoicesList() {
                             <FileText className="w-4 h-4 mr-2" />
                             Ver / PDF
                           </DropdownMenuItem>
+                          {invoice.status === 'draft' && (
+                            <DropdownMenuItem className="text-slate-700 cursor-pointer" onClick={() => setLocation(`/edit/${invoice.id}`)}>
+                              Editar borrador
+                            </DropdownMenuItem>
+                          )}
                           {invoice.status !== 'paid' ? (
                             <DropdownMenuItem className="text-emerald-600 focus:text-emerald-700 cursor-pointer" onClick={() => markInvoiceAsPaid(invoice.id)}>
                               Marcar como pagada
