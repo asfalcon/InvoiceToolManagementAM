@@ -153,12 +153,28 @@ export async function registerRoutes(
     }
   });
 
+  const invoicePatchSchema = z.object({
+    clientId: z.string().optional(),
+    date: z.string().optional(),
+    dueDate: z.string().optional(),
+    discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+    notes: z.string().optional(),
+    status: z.enum(["draft", "pending", "paid", "overdue"]).optional(),
+    items: z.array(z.object({
+      serviceId: z.string().optional(),
+      description: z.string(),
+      quantity: z.number().int().default(1),
+      basePrice: z.union([z.string(), z.number()]).transform(v => String(v)),
+      taxIncrement: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
+    })).optional(),
+  });
+
   app.patch("/api/invoices/:id", async (req, res) => {
     try {
-      const patchSchema = insertInvoiceSchema.partial();
-      const parsed = patchSchema.safeParse(req.body);
+      const parsed = invoicePatchSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Datos inválidos", errors: parsed.error.errors });
-      const invoice = await storage.updateInvoice(req.params.id, parsed.data);
+      const { items, ...invoiceData } = parsed.data;
+      const invoice = await storage.updateInvoice(req.params.id, invoiceData, items);
       if (!invoice) return res.status(404).json({ message: "Factura no encontrada" });
       res.json(invoice);
     } catch (err) {

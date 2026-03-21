@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { FileText, Clock, CheckCircle2, AlertCircle, FileWarning } from "lucide-react";
+import { FileText, Clock, CheckCircle2, FileEdit } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
 
@@ -17,24 +17,22 @@ export default function Dashboard() {
   
   const paidInvoices = invoices.filter(i => i.status === 'paid');
   const pendingInvoices = invoices.filter(i => i.status === 'pending');
-  const overdueInvoices = invoices.filter(i => i.status === 'overdue');
+  const draftInvoices = invoices.filter(i => i.status === 'draft');
 
   const totalPaid = paidInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
   const totalPending = pendingInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
-  const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
 
   const STATS = [
     { label: "Ventas Totales", val: formatCurrency(totalSales), icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Pagadas", val: formatCurrency(totalPaid), icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
     { label: "Pendientes", val: formatCurrency(totalPending), icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "Vencidas", val: formatCurrency(totalOverdue), icon: FileWarning, color: "text-rose-600", bg: "bg-rose-50" },
+    { label: "Borradores", val: `${draftInvoices.length} factura${draftInvoices.length !== 1 ? 's' : ''}`, icon: FileEdit, color: "text-slate-600", bg: "bg-slate-100" },
   ];
 
   const DATA_ESTADOS = [
     { name: "Pagadas", value: paidInvoices.length, color: "#10b981" },
     { name: "Pendientes", value: pendingInvoices.length, color: "#f59e0b" },
-    { name: "Vencidas", value: overdueInvoices.length, color: "#ef4444" },
-    { name: "Borrador", value: invoices.filter(i => i.status === 'draft').length, color: "#94a3b8" }
+    { name: "Borrador", value: draftInvoices.length, color: "#94a3b8" }
   ].filter(d => d.value > 0);
 
   // Evolución de ventas de los últimos 6 meses

@@ -29,7 +29,7 @@ export interface IStorage {
   getInvoices(): Promise<(Invoice & { items: InvoiceItem[] })[]>;
   getInvoice(id: string): Promise<(Invoice & { items: InvoiceItem[] }) | undefined>;
   createInvoice(data: InsertInvoice, items: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<Invoice & { items: InvoiceItem[] }>;
-  updateInvoice(id: string, data: Partial<InsertInvoice>): Promise<Invoice | undefined>;
+  updateInvoice(id: string, data: Partial<InsertInvoice>, itemsData?: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<(Invoice & { items: InvoiceItem[] }) | undefined>;
   deleteInvoice(id: string): Promise<void>;
 
   // Company settings
@@ -116,9 +116,17 @@ export class DatabaseStorage implements IStorage {
     return { ...invoice, items };
   }
 
-  async updateInvoice(id: string, data: Partial<InsertInvoice>): Promise<Invoice | undefined> {
+  async updateInvoice(id: string, data: Partial<InsertInvoice>, itemsData?: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<Invoice & { items: InvoiceItem[] } | undefined> {
     const [invoice] = await db.update(invoices).set(data).where(eq(invoices.id, id)).returning();
-    return invoice;
+    if (!invoice) return undefined;
+    if (itemsData !== undefined) {
+      await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+      if (itemsData.length > 0) {
+        await db.insert(invoiceItems).values(itemsData.map(item => ({ ...item, invoiceId: id })));
+      }
+    }
+    const items = await db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+    return { ...invoice, items };
   }
 
   async deleteInvoice(id: string): Promise<void> {
