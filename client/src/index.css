@@ -119,26 +119,17 @@
   }
 }
 
-/* ===== PRINT / PDF SINGLE PAGE (A4 VERTICAL) ===== */
+/* ===== PRINT / PDF SINGLE PAGE ===== */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  * {
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0;
   }
 
   html, body {
-    width: 210mm !important;
-    height: 297mm !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
   }
 
   /* Ocultar todo excepto la factura */
@@ -149,43 +140,30 @@
   /* Mostrar solo el contenedor de la factura */
   .invoice-print-root {
     display: block !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 210mm !important;
-    height: 297mm !important;
-    overflow: hidden !important;
-    background: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    page-break-before: avoid !important;
-    page-break-after: avoid !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    background: white;
   }
 
   .invoice-a4 {
     width: 210mm !important;
+    min-height: unset !important;
     height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
     padding: 10mm 12mm !important;
     box-shadow: none !important;
     overflow: hidden !important;
-    page-break-inside: avoid !important;
-    page-break-before: avoid !important;
     page-break-after: avoid !important;
-    transform-origin: top left !important;
-    background: white !important;
-    margin: 0 !important;
+    page-break-inside: avoid !important;
+    transform-origin: top left;
   }
 
   /* No saltos de página dentro de la factura */
   table, thead, tbody, tr, td, th {
     page-break-inside: avoid !important;
-  }
-
-  /* Asegurar que los elementos interiores respeten el contenedor */
-  .invoice-a4 * {
-    box-sizing: border-box !important;
   }
 }
 
