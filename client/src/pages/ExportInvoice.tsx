@@ -168,10 +168,10 @@ export default function ExportInvoice() {
                       <span>Subtotal</span>
                       <span>{formatEuros(breakdown.subtotal)}</span>
                     </div>
-                    {invoice.discount > 0 && (
+                    {toNum(invoice.discount) > 0 && (
                       <div className="flex justify-between py-2 px-4 border-b border-slate-200">
                         <span>Descuento</span>
-                        <span>-{formatEuros(invoice.discount)}</span>
+                        <span>-{formatEuros(toNum(invoice.discount))}</span>
                       </div>
                     )}
                     <div className="flex justify-between py-2 px-4 text-slate-800">

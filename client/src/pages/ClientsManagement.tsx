@@ -134,7 +134,7 @@ export default function ClientsManagement() {
                         defaultValue={formData.serviceRates?.[service.name] || ""}
                         onChange={(e) => setFormData({
                           ...formData,
-                          serviceRates: { ...formData.serviceRates, [service.name]: parseFloat(e.target.value) || service.basePrice }
+                          serviceRates: { ...formData.serviceRates, [service.name]: parseFloat(e.target.value) || parseFloat(String(service.basePrice)) }
                         })}
                         className="text-sm"
                       />
