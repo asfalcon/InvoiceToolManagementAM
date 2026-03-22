@@ -87,6 +87,7 @@ export default function ExportInvoice() {
                 <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
                   <span className="font-bold text-slate-900">Admin+</span><br />
                   {company.name}<br />
+                  {company.nif && <span>{company.nif}<br /></span>}
                   {company.address}<br />
                   {company.zipCode} {company.city}, {company.province || company.country}<br />
                   {company.email && <span>{company.email}<br /></span>}
