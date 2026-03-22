@@ -57,12 +57,13 @@ export default function CreateInvoice() {
   const applyService = (itemId: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service) {
-      const price = selectedClient?.serviceRates?.[service.name] || service.basePrice;
+      const netPrice = toNum(selectedClient?.serviceRates?.[service.name] || service.basePrice);
+      const grossPrice = Math.round((netPrice / 0.85) * 100) / 100;
       setItems(items.map(item => item.id === itemId ? { 
         ...item, 
         serviceId: service.id,
         description: service.description, 
-        basePrice: price,
+        basePrice: grossPrice,
         taxIncrement: service.taxIncrement
       } : item));
     }
@@ -305,7 +306,7 @@ export default function CreateInvoice() {
               </div>
               <div className="flex justify-between opacity-80">
                 <span>IRPF (15%)</span>
-                <span className="text-white">{formatCurrency(breakdown.irpf)}</span>
+                <span className="text-white">-{formatCurrency(breakdown.irpf)}</span>
               </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>

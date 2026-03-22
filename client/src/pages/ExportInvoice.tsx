@@ -123,7 +123,7 @@ export default function ExportInvoice() {
             <div className="mb-4 flex-grow">
               <table className="w-full text-center border-collapse">
                 <thead>
-                  <tr className="bg-[#bda193] text-black uppercase text-[10px] tracking-widest font-bold">
+                  <tr className="bg-[#C5B8A9] text-black uppercase text-[10px] tracking-widest font-bold">
                     <th className="py-2.5 px-4 border-r border-white text-left w-[55%]">Descripción</th>
                     <th className="py-2.5 px-2 border-r border-white w-[15%]">Cant.</th>
                     <th className="py-2.5 px-2 border-r border-white w-[15%]">Precio</th>
@@ -175,10 +175,10 @@ export default function ExportInvoice() {
                     )}
                     <div className="flex justify-between py-2 px-4 text-slate-800">
                       <span>IRPF (15%)</span>
-                      <span>{formatEuros(breakdown.irpf)}</span>
+                      <span>-{formatEuros(breakdown.irpf)}</span>
                     </div>
                   </div>
-                  <div className="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
+                  <div className="bg-[#4d3c34] text-white flex justify-between items-center py-3 px-4 font-bold">
                     <span className="uppercase tracking-widest text-xs">Total</span>
                     <span className="text-lg">{formatEuros(breakdown.total)}</span>
                   </div>

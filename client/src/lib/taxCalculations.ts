@@ -7,7 +7,7 @@ export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
   const base = subtotal;
   const irpf = base * 0.15;
   const finalDiscount = discount;
-  const total = base - finalDiscount + irpf;
+  const total = base - irpf - finalDiscount;
 
   return {
     subtotal: base,
