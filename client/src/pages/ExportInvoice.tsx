@@ -72,7 +72,6 @@ export default function ExportInvoice() {
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 overflow-auto flex justify-center bg-gray-100 p-8 rounded-xl print:bg-white print:p-0">
           {/* A4 Invoice Document */}
@@ -179,7 +178,7 @@ export default function ExportInvoice() {
                       <span>{formatEuros(breakdown.irpf)}</span>
                     </div>
                   </div>
-                  <div className="bg-[#4d3c34] text-white flex justify-between items-center py-3 px-4 font-bold">
+                  <div className="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
                     <span className="uppercase tracking-widest text-xs">Total</span>
                     <span className="text-lg">{formatEuros(breakdown.total)}</span>
                   </div>
