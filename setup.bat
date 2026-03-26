@@ -9,8 +9,8 @@ echo  =====================================================
 echo   S^&A Financial Management - Configuracion inicial
 echo  =====================================================
 echo.
-echo  Este asistente creara el archivo .env y preparara
-echo  la base de datos automaticamente.
+echo  Este asistente instalara las dependencias, creara
+echo  el archivo .env y preparara la base de datos.
 echo.
 echo  Necesitas una base de datos PostgreSQL gratuita.
 echo  Te recomendamos Neon (gratis, sin tarjeta):
@@ -28,17 +28,26 @@ set /p DB_URL="Pega aqui tu connection string y pulsa Enter: "
 
 echo.
 echo  Creando archivo .env...
-
 (
 echo DATABASE_URL=%DB_URL%
 echo SESSION_SECRET=sa-finanzas-secret-%RANDOM%%RANDOM%
 ) > .env
-
 echo  Archivo .env creado correctamente.
+
+echo.
+echo  Instalando dependencias (puede tardar unos minutos)...
+npm install
+if %errorlevel% neq 0 (
+    echo.
+    echo  ERROR: No se pudieron instalar las dependencias.
+    echo  Asegurate de tener Node.js instalado: https://nodejs.org
+    pause
+    exit /b 1
+)
+
 echo.
 echo  Creando tablas en la base de datos...
 node node_modules\drizzle-kit\bin.cjs push
-
 if %errorlevel% neq 0 (
     echo.
     echo  ERROR: No se pudieron crear las tablas.
