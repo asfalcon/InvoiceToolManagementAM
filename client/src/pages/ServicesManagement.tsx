@@ -62,7 +62,13 @@ export default function ServicesManagement() {
           <h1 className="text-3xl font-bold tracking-tight">Gestión de Servicios</h1>
           <p className="text-muted-foreground mt-1">Crea y edita servicios/conceptos facturables.</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) {
+            setEditingId(null);
+            setFormData({ name: "", description: "", basePrice: 0, taxIncrement: 0, category: "" });
+          }
+        }}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" /> Nuevo Servicio
