@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 chcp 65001 >nul
-title S&A Financial - Configuracion inicial
+title SA Financial - Configuracion inicial
 color 0A
 
 echo.
@@ -37,7 +37,7 @@ echo SESSION_SECRET=sa-finanzas-secret-%RANDOM%%RANDOM%
 echo  Archivo .env creado correctamente.
 echo.
 echo  Creando tablas en la base de datos...
-call npm run db:push
+node node_modules\drizzle-kit\bin.cjs push
 
 if %errorlevel% neq 0 (
     echo.
