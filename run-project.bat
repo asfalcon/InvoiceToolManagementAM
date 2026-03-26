@@ -2,30 +2,43 @@
 cd /d "%~dp0"
 
 echo =====================================================
-echo  SA Financial Management
+echo  SA Financial Management - Launcher
 echo =====================================================
 echo.
 
+:: ======= Instala dependencias si es necesario =======
 if not exist node_modules (
-    echo Instalando dependencias (solo la primera vez)...
+    echo Instalando dependencias...
     npm install
     if errorlevel 1 (
-        echo.
         echo ERROR: Fallo al instalar dependencias.
-        echo Asegurate de tener Node.js instalado: https://nodejs.org
-        echo.
-        cmd /k
+        pause
         exit /b 1
     )
 )
 
-echo Abre tu navegador en: http://localhost:5000
-echo Para cerrar la aplicacion, cierra esta ventana.
+:: ======= Configura entorno =======
+set NODE_ENV=development
+
+echo Iniciando el servidor...
 echo.
 
-set NODE_ENV=development
-node node_modules\tsx\dist\cli.mjs server/index.ts
+:: ======= Ejecuta servidor y captura errores =======
+:: Se ejecuta en la misma ventana CMD
+:: Redirige errores para que sean visibles
+npx tsx server/index.ts 2>&1
+if errorlevel 1 (
+    echo.
+    echo ERROR: Fallo al iniciar la aplicacion.
+    pause
+    exit /b 1
+)
+
+:: ======= Si el servidor arranca correctamente, abre navegador =======
+:: Pausa unos segundos para dar tiempo al servidor a levantarse
+timeout /t 3 >nul
+start "" "http://localhost:5000"
 
 echo.
 echo La aplicacion se ha detenido.
-cmd /k
+pause
