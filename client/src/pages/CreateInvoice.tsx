@@ -89,6 +89,9 @@ export default function CreateInvoice() {
       return;
     }
 
+    const onSuccess = () => setLocation("/");
+    const onError = (err: any) => toast({ title: "Error al guardar factura", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
+
     if (isEditing && draftInvoice) {
       updateInvoice(draftInvoice.id, {
         clientId: selectedClientId,
@@ -97,10 +100,12 @@ export default function CreateInvoice() {
         discount,
         notes,
         status: "pending" as const,
-      });
-      toast({
-        title: "Factura actualizada",
-        description: `La factura ${draftInvoice.number} se ha guardado y marcado como pendiente.`,
+      }, {
+        onSuccess: () => {
+          toast({ title: "Factura actualizada", description: `La factura ${draftInvoice.number} se ha guardado y marcado como pendiente.` });
+          onSuccess();
+        },
+        onError,
       });
     } else {
       const newInvoice = {
@@ -113,14 +118,14 @@ export default function CreateInvoice() {
         notes,
         status: "pending" as const,
       };
-      addInvoice(newInvoice);
-      toast({
-        title: "Factura guardada",
-        description: `La factura ${nextInvoiceNumber} se ha creado correctamente.`,
+      addInvoice(newInvoice, {
+        onSuccess: () => {
+          toast({ title: "Factura guardada", description: `La factura ${nextInvoiceNumber} se ha creado correctamente.` });
+          onSuccess();
+        },
+        onError,
       });
     }
-    
-    setLocation("/");
   };
 
   const handleSaveDraft = () => {
@@ -129,6 +134,8 @@ export default function CreateInvoice() {
       return;
     }
 
+    const onError = (err: any) => toast({ title: "Error al guardar borrador", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
+
     if (isEditing && draftInvoice) {
       updateInvoice(draftInvoice.id, {
         clientId: selectedClientId,
@@ -137,8 +144,10 @@ export default function CreateInvoice() {
         discount,
         notes,
         status: "draft" as const,
+      }, {
+        onSuccess: () => { toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` }); setLocation("/"); },
+        onError,
       });
-      toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` });
     } else {
       const newInvoice = {
         number: nextInvoiceNumber,
@@ -150,11 +159,11 @@ export default function CreateInvoice() {
         notes,
         status: "draft" as const,
       };
-      addInvoice(newInvoice);
-      toast({ title: "Borrador guardado", description: `La factura ${nextInvoiceNumber} se ha guardado como borrador.` });
+      addInvoice(newInvoice, {
+        onSuccess: () => { toast({ title: "Borrador guardado", description: `La factura ${nextInvoiceNumber} se ha guardado como borrador.` }); setLocation("/"); },
+        onError,
+      });
     }
-
-    setLocation("/");
   };
 
   return (

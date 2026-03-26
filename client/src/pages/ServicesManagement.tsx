@@ -26,21 +26,27 @@ export default function ServicesManagement() {
 
   const handleSave = () => {
     if (!formData.name || !formData.description || formData.basePrice === undefined) {
-      toast({ title: "Error", description: "Completa todos los campos" });
+      toast({ title: "Error", description: "Completa todos los campos obligatorios", variant: "destructive" });
       return;
     }
 
-    if (editingId) {
-      updateService(editingId, formData);
-      toast({ title: "Servicio actualizado" });
-    } else {
-      addService(formData as Service);
-      toast({ title: "Servicio creado" });
-    }
+    const resetForm = () => {
+      setIsOpen(false);
+      setEditingId(null);
+      setFormData({ name: "", description: "", basePrice: 0, taxIncrement: 0, category: "" });
+    };
 
-    setIsOpen(false);
-    setEditingId(null);
-    setFormData({ name: "", description: "", basePrice: 0, taxIncrement: 0, category: "" });
+    if (editingId) {
+      updateService(editingId, formData, {
+        onSuccess: () => { toast({ title: "Servicio actualizado" }); resetForm(); },
+        onError: (err: any) => toast({ title: "Error al actualizar servicio", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+      });
+    } else {
+      addService(formData as Service, {
+        onSuccess: () => { toast({ title: "Servicio creado correctamente" }); resetForm(); },
+        onError: (err: any) => toast({ title: "Error al crear servicio", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+      });
+    }
   };
 
   const handleEdit = (service: Service) => {

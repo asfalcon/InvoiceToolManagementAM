@@ -97,24 +97,26 @@ const DEFAULT_THEME: ThemeSettings = {
   fontSize: 14,
 };
 
+type MutationCallbacks = { onSuccess?: () => void; onError?: (err: any) => void };
+
 type SettingsContextType = {
   company: CompanySettings;
-  saveCompany: (data: CompanySettings) => void;
+  saveCompany: (data: CompanySettings, cb?: MutationCallbacks) => void;
   theme: ThemeSettings;
-  saveTheme: (data: ThemeSettings) => void;
+  saveTheme: (data: ThemeSettings, cb?: MutationCallbacks) => void;
   services: Service[];
-  addService: (service: Partial<Service>) => void;
-  updateService: (id: string, data: Partial<Service>) => void;
-  deleteService: (id: string) => void;
+  addService: (service: Partial<Service>, cb?: MutationCallbacks) => void;
+  updateService: (id: string, data: Partial<Service>, cb?: MutationCallbacks) => void;
+  deleteService: (id: string, cb?: MutationCallbacks) => void;
   clients: Client[];
-  addClient: (client: Partial<Client>) => void;
-  updateClient: (id: string, data: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  addClient: (client: Partial<Client>, cb?: MutationCallbacks) => void;
+  updateClient: (id: string, data: Partial<Client>, cb?: MutationCallbacks) => void;
+  deleteClient: (id: string, cb?: MutationCallbacks) => void;
   invoices: Invoice[];
-  addInvoice: (invoice: Omit<Invoice, "id">) => void;
-  updateInvoice: (id: string, data: Partial<Invoice>) => void;
-  deleteInvoice: (id: string) => void;
-  markInvoiceAsPaid: (id: string) => void;
+  addInvoice: (invoice: Omit<Invoice, "id">, cb?: MutationCallbacks) => void;
+  updateInvoice: (id: string, data: Partial<Invoice>, cb?: MutationCallbacks) => void;
+  deleteInvoice: (id: string, cb?: MutationCallbacks) => void;
+  markInvoiceAsPaid: (id: string, cb?: MutationCallbacks) => void;
   isLoading: boolean;
 };
 
@@ -256,22 +258,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const value: SettingsContextType = {
     company,
-    saveCompany: (data) => saveCompanyMutation.mutate(data),
+    saveCompany: (data, cb) => saveCompanyMutation.mutate(data, cb),
     theme,
-    saveTheme: (data) => saveThemeMutation.mutate(data),
+    saveTheme: (data, cb) => saveThemeMutation.mutate(data, cb),
     services: servicesData,
-    addService: (data) => addServiceMutation.mutate(data),
-    updateService: (id, data) => updateServiceMutation.mutate({ id, data }),
-    deleteService: (id) => deleteServiceMutation.mutate(id),
+    addService: (data, cb) => addServiceMutation.mutate(data, cb),
+    updateService: (id, data, cb) => updateServiceMutation.mutate({ id, data }, cb),
+    deleteService: (id, cb) => deleteServiceMutation.mutate(id, cb),
     clients: clientsData,
-    addClient: (data) => addClientMutation.mutate(data),
-    updateClient: (id, data) => updateClientMutation.mutate({ id, data }),
-    deleteClient: (id) => deleteClientMutation.mutate(id),
+    addClient: (data, cb) => addClientMutation.mutate(data, cb),
+    updateClient: (id, data, cb) => updateClientMutation.mutate({ id, data }, cb),
+    deleteClient: (id, cb) => deleteClientMutation.mutate(id, cb),
     invoices: invoicesData,
-    addInvoice: (invoice) => addInvoiceMutation.mutate(invoice),
-    updateInvoice: (id, data) => updateInvoiceMutation.mutate({ id, data }),
-    deleteInvoice: (id) => deleteInvoiceMutation.mutate(id),
-    markInvoiceAsPaid: (id) => updateInvoiceMutation.mutate({ id, data: { status: "paid" } }),
+    addInvoice: (invoice, cb) => addInvoiceMutation.mutate(invoice, cb),
+    updateInvoice: (id, data, cb) => updateInvoiceMutation.mutate({ id, data }, cb),
+    deleteInvoice: (id, cb) => deleteInvoiceMutation.mutate(id, cb),
+    markInvoiceAsPaid: (id, cb) => updateInvoiceMutation.mutate({ id, data: { status: "paid" } }, cb),
     isLoading,
   };
 

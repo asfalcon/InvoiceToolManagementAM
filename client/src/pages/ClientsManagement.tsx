@@ -34,21 +34,27 @@ export default function ClientsManagement() {
 
   const handleSave = () => {
     if (!formData.name || !formData.nif || !formData.email) {
-      toast({ title: "Error", description: "Completa los campos obligatorios" });
+      toast({ title: "Error", description: "Completa los campos obligatorios (nombre, NIF y email)", variant: "destructive" });
       return;
     }
 
-    if (editingId) {
-      updateClient(editingId, formData);
-      toast({ title: "Cliente actualizado" });
-    } else {
-      addClient(formData as Client);
-      toast({ title: "Cliente creado" });
-    }
+    const resetForm = () => {
+      setIsOpen(false);
+      setEditingId(null);
+      setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", billingType: "standard", customFields: {}, serviceRates: {} });
+    };
 
-    setIsOpen(false);
-    setEditingId(null);
-    setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", billingType: "standard", customFields: {}, serviceRates: {} });
+    if (editingId) {
+      updateClient(editingId, formData, {
+        onSuccess: () => { toast({ title: "Cliente actualizado" }); resetForm(); },
+        onError: (err: any) => toast({ title: "Error al actualizar cliente", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+      });
+    } else {
+      addClient(formData as Client, {
+        onSuccess: () => { toast({ title: "Cliente creado correctamente" }); resetForm(); },
+        onError: (err: any) => toast({ title: "Error al crear cliente", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+      });
+    }
   };
 
   const handleEdit = (client: Client) => {

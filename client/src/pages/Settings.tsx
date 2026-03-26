@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,19 +9,35 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  const { company, saveCompany, theme, saveTheme } = useSettings();
+  const { company, saveCompany, theme, saveTheme, isLoading } = useSettings();
   const { toast } = useToast();
   const [companyForm, setCompanyForm] = useState(company);
   const [themeForm, setThemeForm] = useState(theme);
 
+  useEffect(() => {
+    if (!isLoading) {
+      setCompanyForm(company);
+    }
+  }, [company, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setThemeForm(theme);
+    }
+  }, [theme, isLoading]);
+
   const handleSaveCompany = () => {
-    saveCompany(companyForm);
-    toast({ title: "Datos de empresa guardados" });
+    saveCompany(companyForm, {
+      onSuccess: () => toast({ title: "Datos de empresa guardados correctamente" }),
+      onError: (err: any) => toast({ title: "Error al guardar", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+    });
   };
 
   const handleSaveTheme = () => {
-    saveTheme(themeForm);
-    toast({ title: "Tema actualizado" });
+    saveTheme(themeForm, {
+      onSuccess: () => toast({ title: "Tema actualizado" }),
+      onError: (err: any) => toast({ title: "Error al guardar tema", variant: "destructive" }),
+    });
   };
 
   return (
