@@ -4,6 +4,12 @@ import { storage } from "./storage";
 import { insertClientSchema, insertServiceSchema, insertInvoiceSchema, insertCompanySettingsSchema, insertThemeSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 
+function serverError(res: any, message: string, err: unknown) {
+  const detail = err instanceof Error ? err.message : String(err);
+  console.error(`[ERROR] ${message}:`, err);
+  res.status(500).json({ message, detail });
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -15,7 +21,7 @@ export async function registerRoutes(
       const data = await storage.getClients();
       res.json(data);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener clientes" });
+      serverError(res, "Error al obtener clientes", err);
     }
   });
 
@@ -25,7 +31,7 @@ export async function registerRoutes(
       if (!client) return res.status(404).json({ message: "Cliente no encontrado" });
       res.json(client);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener cliente" });
+      serverError(res, "Error al obtener cliente", err);
     }
   });
 
@@ -36,7 +42,7 @@ export async function registerRoutes(
       const client = await storage.createClient(parsed.data);
       res.status(201).json(client);
     } catch (err) {
-      res.status(500).json({ message: "Error al crear cliente" });
+      serverError(res, "Error al crear cliente", err);
     }
   });
 
@@ -48,7 +54,7 @@ export async function registerRoutes(
       if (!client) return res.status(404).json({ message: "Cliente no encontrado" });
       res.json(client);
     } catch (err) {
-      res.status(500).json({ message: "Error al actualizar cliente" });
+      serverError(res, "Error al actualizar cliente", err);
     }
   });
 
@@ -57,7 +63,7 @@ export async function registerRoutes(
       await storage.deleteClient(req.params.id);
       res.status(204).send();
     } catch (err) {
-      res.status(500).json({ message: "Error al eliminar cliente" });
+      serverError(res, "Error al eliminar cliente", err);
     }
   });
 
@@ -67,7 +73,7 @@ export async function registerRoutes(
       const data = await storage.getServices();
       res.json(data);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener servicios" });
+      serverError(res, "Error al obtener servicios", err);
     }
   });
 
@@ -78,7 +84,7 @@ export async function registerRoutes(
       const service = await storage.createService(parsed.data);
       res.status(201).json(service);
     } catch (err) {
-      res.status(500).json({ message: "Error al crear servicio" });
+      serverError(res, "Error al crear servicio", err);
     }
   });
 
@@ -90,7 +96,7 @@ export async function registerRoutes(
       if (!service) return res.status(404).json({ message: "Servicio no encontrado" });
       res.json(service);
     } catch (err) {
-      res.status(500).json({ message: "Error al actualizar servicio" });
+      serverError(res, "Error al actualizar servicio", err);
     }
   });
 
@@ -99,7 +105,7 @@ export async function registerRoutes(
       await storage.deleteService(req.params.id);
       res.status(204).send();
     } catch (err) {
-      res.status(500).json({ message: "Error al eliminar servicio" });
+      serverError(res, "Error al eliminar servicio", err);
     }
   });
 
@@ -109,7 +115,7 @@ export async function registerRoutes(
       const data = await storage.getInvoices();
       res.json(data);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener facturas" });
+      serverError(res, "Error al obtener facturas", err);
     }
   });
 
@@ -119,7 +125,7 @@ export async function registerRoutes(
       if (!invoice) return res.status(404).json({ message: "Factura no encontrada" });
       res.json(invoice);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener factura" });
+      serverError(res, "Error al obtener factura", err);
     }
   });
 
@@ -149,7 +155,7 @@ export async function registerRoutes(
       res.status(201).json(invoice);
     } catch (err: any) {
       if (err.code === "23505") return res.status(409).json({ message: "El número de factura ya existe" });
-      res.status(500).json({ message: "Error al crear factura" });
+      serverError(res, "Error al crear factura", err);
     }
   });
 
@@ -178,7 +184,7 @@ export async function registerRoutes(
       if (!invoice) return res.status(404).json({ message: "Factura no encontrada" });
       res.json(invoice);
     } catch (err) {
-      res.status(500).json({ message: "Error al actualizar factura" });
+      serverError(res, "Error al actualizar factura", err);
     }
   });
 
@@ -187,7 +193,7 @@ export async function registerRoutes(
       await storage.deleteInvoice(req.params.id);
       res.status(204).send();
     } catch (err) {
-      res.status(500).json({ message: "Error al eliminar factura" });
+      serverError(res, "Error al eliminar factura", err);
     }
   });
 
@@ -197,7 +203,7 @@ export async function registerRoutes(
       const settings = await storage.getCompanySettings();
       res.json(settings || null);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener configuración" });
+      serverError(res, "Error al obtener configuración", err);
     }
   });
 
@@ -208,7 +214,7 @@ export async function registerRoutes(
       const settings = await storage.saveCompanySettings(parsed.data);
       res.json(settings);
     } catch (err) {
-      res.status(500).json({ message: "Error al guardar configuración" });
+      serverError(res, "Error al guardar configuración", err);
     }
   });
 
@@ -218,7 +224,7 @@ export async function registerRoutes(
       const settings = await storage.getThemeSettings();
       res.json(settings || null);
     } catch (err) {
-      res.status(500).json({ message: "Error al obtener tema" });
+      serverError(res, "Error al obtener tema", err);
     }
   });
 
@@ -229,7 +235,7 @@ export async function registerRoutes(
       const settings = await storage.saveThemeSettings(parsed.data);
       res.json(settings);
     } catch (err) {
-      res.status(500).json({ message: "Error al guardar tema" });
+      serverError(res, "Error al guardar tema", err);
     }
   });
 
