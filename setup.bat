@@ -1,25 +1,22 @@
 @echo off
+if "%~1"=="" (
+    start "SA Financial - Configuracion" cmd /k "%~f0" run
+    exit /b
+)
 cd /d "%~dp0"
-chcp 65001 >nul
-title SA Financial - Configuracion inicial
-color 0A
 
-echo.
-echo  =====================================================
-echo   S^&A Financial Management - Configuracion inicial
-echo  =====================================================
-echo.
-echo  Este asistente instalara las dependencias, creara
-echo  el archivo .env y preparara la base de datos.
+echo =====================================================
+echo  SA Financial Management - Configuracion inicial
+echo =====================================================
 echo.
 echo  Necesitas una base de datos PostgreSQL gratuita.
-echo  Te recomendamos Neon (gratis, sin tarjeta):
+echo  Te recomendamos Neon (gratis, sin tarjeta^):
 echo.
 echo    1. Ve a: https://neon.tech
 echo    2. Crea una cuenta gratuita
 echo    3. Crea un nuevo proyecto
 echo    4. Copia la "Connection string" que aparece
-echo       (empieza por postgresql://...)
+echo       (empieza por postgresql://...^)
 echo.
 pause
 
@@ -27,42 +24,30 @@ echo.
 set /p DB_URL="Pega aqui tu connection string y pulsa Enter: "
 
 echo.
-echo  Creando archivo .env...
+echo Creando archivo .env...
 (
 echo DATABASE_URL=%DB_URL%
 echo SESSION_SECRET=sa-finanzas-secret-%RANDOM%%RANDOM%
 ) > .env
-echo  Archivo .env creado correctamente.
+echo Archivo .env creado.
 
 echo.
-echo  Instalando dependencias (puede tardar unos minutos)...
+echo Instalando dependencias (puede tardar unos minutos^)...
 npm install
-if %errorlevel% neq 0 (
-    echo.
-    echo  ERROR: No se pudieron instalar las dependencias.
-    echo  Asegurate de tener Node.js instalado: https://nodejs.org
-    pause
-    exit /b 1
-)
 
 echo.
-echo  Creando tablas en la base de datos...
+echo Creando tablas en la base de datos...
 node node_modules\drizzle-kit\bin.cjs push
-if %errorlevel% neq 0 (
-    echo.
-    echo  ERROR: No se pudieron crear las tablas.
-    echo  Comprueba que la connection string es correcta.
-    echo  Borra el archivo .env y vuelve a ejecutar setup.bat
-    pause
-    exit /b 1
-)
 
 echo.
-echo  =====================================================
-echo   Configuracion completada con exito!
-echo  =====================================================
+if errorlevel 1 (
+    echo ERROR: No se pudieron crear las tablas.
+    echo Comprueba que la connection string es correcta.
+    echo Borra el archivo .env y vuelve a ejecutar setup.bat
+) else (
+    echo =====================================================
+    echo  Configuracion completada con exito.
+    echo  Ahora ejecuta run-project.bat para iniciar la app.
+    echo =====================================================
+)
 echo.
-echo  Ahora puedes usar run-project.bat para arrancar
-echo  la aplicacion en cualquier momento.
-echo.
-pause
