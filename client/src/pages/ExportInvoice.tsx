@@ -1,7 +1,14 @@
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Share2, ArrowLeft, Printer, Mail, MessageSquare } from "lucide-react";
+import {
+  Download,
+  Share2,
+  ArrowLeft,
+  Printer,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, toNum } from "@/lib/taxCalculations";
@@ -10,11 +17,14 @@ import { useRef } from "react";
 export default function ExportInvoice() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
-  const { company, invoices, clients, markInvoiceAsPaid, updateInvoice } = useSettings();
+  const { company, invoices, clients, markInvoiceAsPaid, updateInvoice } =
+    useSettings();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
-  const invoice = invoices.find(i => i.id === id);
-  const client = invoice ? clients.find(c => c.id === invoice.clientId) : null;
+  const invoice = invoices.find((i) => i.id === id);
+  const client = invoice
+    ? clients.find((c) => c.id === invoice.clientId)
+    : null;
 
   if (!invoice || !client) {
     return (
@@ -26,9 +36,13 @@ export default function ExportInvoice() {
   }
 
   const roundUp = (num: number) => Math.ceil(num * 100) / 100;
-  const formatEuros = (num: number) => `${roundUp(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+  const formatEuros = (num: number) =>
+    `${roundUp(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
-  const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * toNum(item.basePrice), 0);
+  const subtotal = invoice.items.reduce(
+    (sum, item) => sum + item.quantity * toNum(item.basePrice),
+    0,
+  );
   const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
 
   const handlePrint = () => {
@@ -41,14 +55,17 @@ export default function ExportInvoice() {
     const portal = document.createElement("div");
     portal.className = "invoice-print-root";
     const clone = invoiceRef.current.cloneNode(true) as HTMLElement;
-    clone.className = "invoice-a4 bg-white text-slate-900 font-sans flex flex-col";
+    clone.className =
+      "invoice-a4 bg-white text-slate-900 font-sans flex flex-col";
     portal.appendChild(clone);
     document.body.appendChild(portal);
 
     window.print();
 
     document.body.removeChild(portal);
-    setTimeout(() => { document.title = originalTitle; }, 300);
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 300);
   };
 
   const handleDownload = handlePrint;
@@ -58,16 +75,30 @@ export default function ExportInvoice() {
       {/* Botones de acción (No se imprimen debido a una clase CSS print:hidden que añadiremos al index.css) */}
       <div className="flex items-center justify-between print:hidden">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/")} className="rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLocation("/")}
+            className="rounded-full"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Exportar Factura</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Exportar Factura
+          </h1>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" className="gap-2 text-sm" onClick={handlePrint}>
+          <Button
+            variant="outline"
+            className="gap-2 text-sm"
+            onClick={handlePrint}
+          >
             <Printer className="w-4 h-4" /> Imprimir
           </Button>
-          <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-sm" onClick={handleDownload}>
+          <Button
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-sm"
+            onClick={handleDownload}
+          >
             <Download className="w-4 h-4" /> Exportar a PDF
           </Button>
         </div>
@@ -75,7 +106,7 @@ export default function ExportInvoice() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 overflow-auto flex justify-center bg-gray-100 p-8 rounded-xl print:bg-white print:p-0">
           {/* A4 Invoice Document */}
-          <div 
+          <div
             ref={invoiceRef}
             className="bg-white text-slate-900 shadow-xl print:shadow-none p-10 w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-col font-sans overflow-hidden"
           >
@@ -83,14 +114,35 @@ export default function ExportInvoice() {
             <div className="flex justify-between items-start mb-5">
               {/* Top Left: Company */}
               <div className="w-[48%]">
-                <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-14 mb-2 object-contain" />
+                <img
+                  src="/logo-admin.png"
+                  alt="LogoAdmin"
+                  className="max-h-24 mb-2 object-contain"
+                />
                 <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-                  <span className="font-bold text-slate-900 text-[16px]">Admin+</span><br />
-                  {company.name}<br />
-                  {company.nif && <span>{company.nif}<br /></span>}
-                  {company.address}<br />
-                  {company.zipCode} {company.city}, {company.province || company.country}<br />
-                  {company.email && <span>{company.email}<br /></span>}
+                  <span className="font-bold text-slate-900 text-[16px]">
+                    Admin+
+                  </span>
+                  <br />
+                  {company.name}
+                  <br />
+                  {company.nif && (
+                    <span>
+                      {company.nif}
+                      <br />
+                    </span>
+                  )}
+                  {company.address}
+                  <br />
+                  {company.zipCode} {company.city},{" "}
+                  {company.province || company.country}
+                  <br />
+                  {company.email && (
+                    <span>
+                      {company.email}
+                      <br />
+                    </span>
+                  )}
                   {company.phone && <span>{company.phone}</span>}
                 </div>
               </div>
@@ -100,13 +152,26 @@ export default function ExportInvoice() {
                 <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-3">
                   FACTURA
                 </div>
-                <div className="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
-                <div className="font-semibold text-sm text-slate-800 mb-3">{new Date(invoice.date).toLocaleDateString("es-ES", {day: '2-digit', month: 'long', year: 'numeric'})}</div>
-                <div className="font-bold text-base text-slate-800 mb-1">{client.name}</div>
+                <div className="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">
+                  Fecha de Emisión:
+                </div>
+                <div className="font-semibold text-sm text-slate-800 mb-3">
+                  {new Date(invoice.date).toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </div>
+                <div className="font-bold text-base text-slate-800 mb-1">
+                  {client.name}
+                </div>
                 <div className="text-xs leading-relaxed text-slate-700 font-sans">
-                  <span className="font-semibold">NIF:</span> {client.nif}<br />
-                  {client.address}<br />
-                  {client.zipCode} {client.city}, {client.country}<br />
+                  <span className="font-semibold">NIF:</span> {client.nif}
+                  <br />
+                  {client.address}
+                  <br />
+                  {client.zipCode} {client.city}, {client.country}
+                  <br />
                   {client.email && <span>{client.email}</span>}
                 </div>
               </div>
@@ -115,8 +180,12 @@ export default function ExportInvoice() {
             {/* Invoice Meta */}
             <div className="flex justify-start gap-12 mb-5 border-b border-t border-slate-200 py-3">
               <div>
-                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
-                <div className="font-semibold text-sm text-slate-800">{invoice.number}</div>
+                <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">
+                  Nº de Factura:
+                </div>
+                <div className="font-semibold text-sm text-slate-800">
+                  {invoice.number}
+                </div>
               </div>
             </div>
 
@@ -125,27 +194,49 @@ export default function ExportInvoice() {
               <table className="w-full text-center border-collapse">
                 <thead>
                   <tr className="bg-[#C5B8A9] text-black uppercase text-[10px] tracking-widest font-bold">
-                    <th className="py-2.5 px-4 border-r border-white text-left w-[55%]">Descripción</th>
-                    <th className="py-2.5 px-2 border-r border-white w-[15%]">Cant.</th>
-                    <th className="py-2.5 px-2 border-r border-white w-[15%]">Precio</th>
+                    <th className="py-2.5 px-4 border-r border-white text-left w-[55%]">
+                      Descripción
+                    </th>
+                    <th className="py-2.5 px-2 border-r border-white w-[15%]">
+                      Cant.
+                    </th>
+                    <th className="py-2.5 px-2 border-r border-white w-[15%]">
+                      Precio
+                    </th>
                     <th className="py-2.5 px-2 w-[15%]">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm font-sans">
                   {invoice.items.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">{item.description}</td>
-                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">{item.quantity}</td>
-                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">{formatEuros(toNum(item.basePrice))}</td>
-                      <td className="py-3 px-2 text-slate-800 font-bold align-top">{formatEuros(item.quantity * toNum(item.basePrice))}</td>
+                      <td className="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">
+                        {item.description}
+                      </td>
+                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">
+                        {item.quantity}
+                      </td>
+                      <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">
+                        {formatEuros(toNum(item.basePrice))}
+                      </td>
+                      <td className="py-3 px-2 text-slate-800 font-bold align-top">
+                        {formatEuros(item.quantity * toNum(item.basePrice))}
+                      </td>
                     </tr>
                   ))}
                   {/* Filas vacías de relleno reducidas */}
-                  {Array.from({ length: Math.max(0, 3 - invoice.items.length) }).map((_, idx) => (
+                  {Array.from({
+                    length: Math.max(0, 3 - invoice.items.length),
+                  }).map((_, idx) => (
                     <tr key={`empty-${idx}`}>
-                      <td className="py-3 px-4 border-r-2 border-white text-transparent">.</td>
-                      <td className="py-3 px-2 border-r-2 border-white text-transparent">.</td>
-                      <td className="py-3 px-2 border-r-2 border-white text-transparent">.</td>
+                      <td className="py-3 px-4 border-r-2 border-white text-transparent">
+                        .
+                      </td>
+                      <td className="py-3 px-2 border-r-2 border-white text-transparent">
+                        .
+                      </td>
+                      <td className="py-3 px-2 border-r-2 border-white text-transparent">
+                        .
+                      </td>
                       <td className="py-3 px-2 text-transparent">.</td>
                     </tr>
                   ))}
@@ -157,8 +248,12 @@ export default function ExportInvoice() {
                 <div className="w-[55%] pt-4 pr-4">
                   {invoice.notes && (
                     <div className="text-slate-600 mt-4">
-                      <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-2">Observaciones:</h4>
-                      <p className="text-[12px] leading-relaxed italic">{invoice.notes}</p>
+                      <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-2">
+                        Observaciones:
+                      </h4>
+                      <p className="text-[12px] leading-relaxed italic">
+                        {invoice.notes}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -180,8 +275,12 @@ export default function ExportInvoice() {
                     </div>
                   </div>
                   <div className="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
-                    <span className="uppercase tracking-widest text-xs">Total</span>
-                    <span className="text-lg">{formatEuros(breakdown.total)}</span>
+                    <span className="uppercase tracking-widest text-xs">
+                      Total
+                    </span>
+                    <span className="text-lg">
+                      {formatEuros(breakdown.total)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -191,14 +290,24 @@ export default function ExportInvoice() {
             <div className="mt-auto pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
               <div className="grid grid-cols-2 gap-8">
                 <div>
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
-                  <p className="mb-1">Método: Transferencia Bancaria</p>
-                  <p className="font-medium text-slate-800 mt-1">IBAN: {company.bankAccount}</p>
-                  {company.bankCode && <p className="mt-1">Banco: {company.bankCode}</p>}
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">
+                    Información de Pago
+                  </h4>
+                  <p className="mb-1 text-[#1d293d] bg-[transparent]">Método: Transferencia Bancaria</p>
+                  <p className="font-medium text-slate-800 mt-1">
+                    IBAN: {company.bankAccount}
+                  </p>
+                  {company.bankCode && (
+                    <p className="mt-1">Banco: {company.bankCode}</p>
+                  )}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
-                  <p className="text-justify leading-relaxed text-[9px]">{company.legalNotes}</p>
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">
+                    Información Legal
+                  </h4>
+                  <p className="text-justify leading-relaxed text-[9px]">
+                    {company.legalNotes}
+                  </p>
                 </div>
               </div>
             </div>
@@ -213,29 +322,37 @@ export default function ExportInvoice() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
                 <span className="text-sm text-slate-600">Estado Actual</span>
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  invoice.status === 'paid'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : invoice.status === 'draft'
-                    ? 'bg-slate-100 text-slate-700'
-                    : 'bg-amber-100 text-amber-700'
-                }`}>
-                  {invoice.status === 'paid' ? 'Pagada' : invoice.status === 'draft' ? 'Borrador' : 'Pendiente'}
+                <span
+                  className={`px-2 py-1 text-xs rounded-full font-medium ${
+                    invoice.status === "paid"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : invoice.status === "draft"
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {invoice.status === "paid"
+                    ? "Pagada"
+                    : invoice.status === "draft"
+                      ? "Borrador"
+                      : "Pendiente"}
                 </span>
               </div>
-              
-              {invoice.status !== 'paid' ? (
-                <Button 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700" 
+
+              {invoice.status !== "paid" ? (
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
                   onClick={() => markInvoiceAsPaid(invoice.id)}
                 >
                   Marcar como Pagada
                 </Button>
               ) : (
-                <Button 
+                <Button
                   variant="outline"
-                  className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700" 
-                  onClick={() => updateInvoice(invoice.id, { status: 'pending' })}
+                  className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700"
+                  onClick={() =>
+                    updateInvoice(invoice.id, { status: "pending" })
+                  }
                 >
                   Deshacer Pago
                 </Button>
@@ -245,7 +362,7 @@ export default function ExportInvoice() {
                 variant="outline"
                 className="w-full text-slate-600 border-slate-300 hover:bg-slate-50"
                 onClick={() => {
-                  updateInvoice(invoice.id, { status: 'draft' });
+                  updateInvoice(invoice.id, { status: "draft" });
                   setLocation(`/edit/${invoice.id}`);
                 }}
               >
@@ -253,19 +370,31 @@ export default function ExportInvoice() {
               </Button>
             </CardContent>
           </Card>
-          
+
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Compartir</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start gap-2 py-5 h-auto text-xs">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 py-5 h-auto text-xs"
+              >
                 <Mail className="w-4 h-4" />
-                <div className="text-left"><p className="font-bold">Email</p><p className="text-muted-foreground">Enviar al cliente</p></div>
+                <div className="text-left">
+                  <p className="font-bold">Email</p>
+                  <p className="text-muted-foreground">Enviar al cliente</p>
+                </div>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 py-5 h-auto text-xs">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 py-5 h-auto text-xs"
+              >
                 <MessageSquare className="w-4 h-4" />
-                <div className="text-left"><p className="font-bold">WhatsApp</p><p className="text-muted-foreground">Compartir enlace</p></div>
+                <div className="text-left">
+                  <p className="font-bold">WhatsApp</p>
+                  <p className="text-muted-foreground">Compartir enlace</p>
+                </div>
               </Button>
             </CardContent>
           </Card>
