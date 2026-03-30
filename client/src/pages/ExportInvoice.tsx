@@ -305,7 +305,7 @@ export default function ExportInvoice() {
                   <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">
                     Información Legal
                   </h4>
-                  <p className="text-justify leading-relaxed text-[9px]">
+                  <p className="text-justify text-[9px] text-[#1d293d] bg-[transparent]">
                     {company.legalNotes}
                   </p>
                 </div>
