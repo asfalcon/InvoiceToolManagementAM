@@ -85,7 +85,7 @@ export default function ExportInvoice() {
               <div className="w-[48%]">
                 <img src="/logo-admin.png" alt="LogoAdmin" className="max-h-14 mb-2 object-contain" />
                 <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-                  <span className="font-bold text-slate-900">Admin+</span><br />
+                  <span className="font-bold text-slate-900 text-[16px]">Admin+</span><br />
                   {company.name}<br />
                   {company.nif && <span>{company.nif}<br /></span>}
                   {company.address}<br />
