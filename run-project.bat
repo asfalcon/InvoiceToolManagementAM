@@ -27,14 +27,16 @@ echo Sincronizando base de datos...
 node node_modules\drizzle-kit\bin.cjs push
 echo.
 
-echo Abre tu navegador en: http://localhost:5000
-echo Para cerrar la aplicacion, cierra esta ventana.
-echo.
-
 set NODE_ENV=development
-node node_modules\tsx\dist\cli.mjs server/index.ts
+start "" /b node node_modules\tsx\dist\cli.mjs server/index.ts
 
+echo Esperando que el servidor arranque...
+timeout /t 3 /nobreak >nul
+
+start "" http://localhost:5000
+
+echo Servidor corriendo en http://localhost:5000
+echo Cierra esta ventana para detener la aplicacion.
 echo.
-echo La aplicacion se ha detenido.
+
 :fin
-echo.
