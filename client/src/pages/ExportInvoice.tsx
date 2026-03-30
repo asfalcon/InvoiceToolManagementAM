@@ -294,7 +294,7 @@ export default function ExportInvoice() {
                     Información de Pago
                   </h4>
                   <p className="mb-1 text-[#1d293d] bg-[transparent]">Método: Transferencia Bancaria</p>
-                  <p className="font-medium text-slate-800 mt-1">
+                  <p className="text-slate-800 mt-1 font-normal">
                     IBAN: {company.bankAccount}
                   </p>
                   {company.bankCode && (
