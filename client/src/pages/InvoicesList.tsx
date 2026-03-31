@@ -287,13 +287,17 @@ export default function InvoicesList() {
 </head>
 <body>
   ${pages}
-  <script>window.onload = function(){ window.print(); setTimeout(function(){ window.close(); }, 500); }<\/script>
 </body></html>`;
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (printWindow) {
       printWindow.document.write(html);
       printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        setTimeout(() => printWindow.close(), 500);
+      }, 600);
     }
   };
 
@@ -359,13 +363,17 @@ export default function InvoicesList() {
   </table>
   <div class="total-row">Total mostrado: <strong>${formatCurrency(totalFilteredAmount)}</strong></div>
   <div class="footer">${company.name} &mdash; ${company.nif} &mdash; ${company.address}, ${company.zipCode} ${company.city}</div>
-  <script>window.onload = function(){ window.print(); setTimeout(function(){ window.close(); }, 500); }<\/script>
 </body></html>`;
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (printWindow) {
       printWindow.document.write(html);
       printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        setTimeout(() => printWindow.close(), 500);
+      }, 400);
     }
   };
 
