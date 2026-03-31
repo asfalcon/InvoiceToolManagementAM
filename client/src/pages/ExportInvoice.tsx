@@ -273,10 +273,12 @@ export default function ExportInvoice() {
                         <span>-{formatEuros(toNum(invoice.discount))}</span>
                       </div>
                     )}
-                    <div className="flex justify-between py-2 px-4 text-slate-800">
-                      <span>IRPF (15%)</span>
-                      <span>-{formatEuros(breakdown.irpf)}</span>
-                    </div>
+                    {applyIrpfFlag && (
+                      <div className="flex justify-between py-2 px-4 text-slate-800">
+                        <span>IRPF (15%)</span>
+                        <span>-{formatEuros(breakdown.irpf)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
                     <span className="uppercase tracking-widest text-xs">

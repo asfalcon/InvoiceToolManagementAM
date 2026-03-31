@@ -32,7 +32,12 @@ export default function CreateInvoice() {
   const [discount, setDiscount] = useState(draftInvoice ? toNum(draftInvoice.discount) : 0);
   const [issueDate, setIssueDate] = useState(draftInvoice?.date ?? new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState(draftInvoice?.notes ?? "");
-  const [applyIrpf, setApplyIrpf] = useState(true);
+  const [applyIrpf, setApplyIrpf] = useState(() => {
+    if (draftInvoice) {
+      return draftInvoice.applyIrpf !== false && draftInvoice.applyIrpf !== "false";
+    }
+    return true;
+  });
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
