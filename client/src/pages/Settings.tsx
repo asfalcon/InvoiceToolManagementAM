@@ -134,7 +134,7 @@ export default function Settings() {
 
         <TabsContent value="company1" className="space-y-6">
           <div className="pt-2 px-1">
-            <h2 className="text-lg font-semibold">Datos de la Empresa 1</h2>
+            <h2 className="text-lg font-semibold">Datos de Miguel Santiago</h2>
             <p className="text-sm text-muted-foreground">Información principal de la primera empresa emisora de facturas.</p>
           </div>
           <CompanyForm initialData={company} onSave={saveCompany} />
