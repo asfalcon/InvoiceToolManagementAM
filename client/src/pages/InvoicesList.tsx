@@ -59,9 +59,11 @@ export default function InvoicesList() {
   const filteredInvoices = invoices.filter(inv => {
     const search = searchTerm.toLowerCase();
     const clientName = getClientName(inv.clientId).toLowerCase();
+    const clientNumber = getClientNumber(inv.clientId).toLowerCase();
     const matchesSearch =
       clientName.includes(search) ||
       inv.number.toLowerCase().includes(search) ||
+      clientNumber.includes(search) ||
       new Date(inv.date).toLocaleDateString('es-ES').includes(search) ||
       formatCurrency(getInvoiceTotal(inv)).includes(search) ||
       getStatusLabel(inv.status).toLowerCase().includes(search);
@@ -435,7 +437,7 @@ export default function InvoicesList() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               data-testid="input-search-invoice"
-              placeholder="Buscar por cliente, número, fecha, importe..."
+              placeholder="Buscar por cliente, nº cliente, número, fecha, importe..."
               className="pl-9 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -511,7 +513,7 @@ export default function InvoicesList() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{invoice.number}</TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-xs">{getClientNumber(invoice.clientId)}</TableCell>
+                      <TableCell>{getClientNumber(invoice.clientId)}</TableCell>
                       <TableCell>{getClientName(invoice.clientId)}</TableCell>
                       <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES')}</TableCell>
                       <TableCell className="text-right font-medium">
