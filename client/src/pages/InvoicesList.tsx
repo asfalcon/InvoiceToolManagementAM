@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, Search, Filter, MoreHorizontal, Users, FileText, Printer } from "lucide-react";
-import logo_adminp from "@assets/logo_adminp.png";
+import Logo_AM from "@assets/Logo AM.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -186,9 +186,9 @@ export default function InvoicesList() {
         <!-- Header -->
         <div class="flex justify-between items-start mb-5">
           <div class="w-[48%]">
-            <img src="${logo_adminp}" alt="LogoAdmin" class="max-h-24 mb-2 object-contain" />
+            <img src="${Logo_AM}" alt="LogoAdmin" class="max-h-24 mb-2 object-contain" />
             <div class="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-              <span class="font-bold text-slate-900 text-[16px]">Admin+</span><br>
+              <br>
               ${invCompany.name}<br>
               ${invCompany.nif ? `${invCompany.nif}<br>` : ''}
               ${invCompany.address}<br>
@@ -225,7 +225,7 @@ export default function InvoicesList() {
         <div class="mb-4 flex-grow">
           <table class="w-full text-center border-collapse">
             <thead>
-              <tr class="bg-[#C5B8A9] text-black uppercase text-[10px] tracking-widest font-bold">
+              <tr class="bg-[#B2D3C2] text-black uppercase text-[10px] tracking-widest font-bold">
                 <th class="py-2.5 px-4 border-r border-white text-left w-[55%]">Descripción</th>
                 <th class="py-2.5 px-2 border-r border-white w-[15%]">Cant.</th>
                 <th class="py-2.5 px-2 border-r border-white w-[15%]">Precio</th>
@@ -250,8 +250,8 @@ export default function InvoicesList() {
                 ${discountRowHtml}
                 ${igicRowHtml}
               </div>
-              <div class="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
-                <span class="uppercase tracking-widest text-xs">Total</span>
+              <div class="flex justify-between items-center py-3 px-4 font-bold bg-[transparent] text-[#1d293d]">
+                <span class="uppercase tracking-widest text-[18px]">Total</span>
                 <span class="text-lg">${fmtEur(breakdown.total)}</span>
               </div>
             </div>

@@ -201,7 +201,7 @@ export default function ExportInvoice() {
             <div className="mb-4 flex-grow">
               <table className="w-full text-center border-collapse">
                 <thead>
-                  <tr className="bg-[#C5B8A9] text-black uppercase text-[10px] tracking-widest font-bold">
+                  <tr className="bg-[#B2D3C2] text-black uppercase text-[10px] tracking-widest font-bold">
                     <th className="py-2.5 px-4 border-r border-white text-left w-[55%]">
                       Descripción
                     </th>
