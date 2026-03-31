@@ -127,7 +127,7 @@ export default function Settings() {
       </div>
       <Tabs defaultValue="company1" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="company1">Miguel Ángel</TabsTrigger>
+          <TabsTrigger value="company1">Miguel Santiago</TabsTrigger>
           <TabsTrigger value="company2">Empresa 2</TabsTrigger>
           <TabsTrigger value="theme">Tema</TabsTrigger>
         </TabsList>
