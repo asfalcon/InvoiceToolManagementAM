@@ -38,7 +38,7 @@ export default function InvoicesList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
-  const { invoices, clients, markInvoiceAsPaid, updateInvoice, company } = useSettings();
+  const { invoices, clients, markInvoiceAsPaid, updateInvoice, company, company2 } = useSettings();
 
   const getClientName = (clientId: string) =>
     clients.find(c => c.id === clientId)?.name || "Cliente Desconocido";
@@ -49,12 +49,16 @@ export default function InvoicesList() {
   const getClient = (clientId: string) =>
     clients.find(c => c.id === clientId);
 
+  const getCompanyForInvoice = (invoice: any) =>
+    (invoice.companyId === 2) ? company2 : company;
+
+  const getCompanyLabel = (invoice: any) =>
+    (invoice.companyId === 2) ? "Empresa 2" : "Empresa 1";
+
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
-    const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
-    const rawBreakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
-    if (applyIrpfFlag) return rawBreakdown.total;
-    return Math.ceil((subtotal - parseFloat(invoice.discount || 0)) * 100) / 100;
+    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
+    return breakdown.total;
   };
 
   const filteredInvoices = invoices.filter(inv => {
@@ -129,13 +133,10 @@ export default function InvoicesList() {
     const client = getClient(inv.clientId);
     if (!client) return "";
 
+    const invCompany = getCompanyForInvoice(inv);
     const subtotal = inv.items.reduce((s: number, it: any) => s + it.quantity * parseFloat(it.basePrice || 0), 0);
     const discount = parseFloat(inv.discount || 0);
-    const applyIrpf = !(inv.applyIrpf === false || inv.applyIrpf === "false");
-    const rawB = calculateTaxBreakdown(subtotal, discount);
-    const breakdown = applyIrpf
-      ? rawB
-      : { ...rawB, irpf: 0, total: roundUp(subtotal - discount) };
+    const breakdown = calculateTaxBreakdown(subtotal, discount);
 
     const emptyRows = Math.max(0, 3 - inv.items.length);
 
@@ -160,10 +161,9 @@ export default function InvoicesList() {
            <span>Descuento</span><span>-${fmtEur(discount)}</span>
          </div>` : '';
 
-    const irpfRowHtml = applyIrpf
-      ? `<div class="flex justify-between py-2 px-4 text-slate-800">
-           <span>IRPF (15%)</span><span>-${fmtEur(breakdown.irpf)}</span>
-         </div>` : '';
+    const igicRowHtml = `<div class="flex justify-between py-2 px-4 text-slate-800">
+           <span>IGIC (7%)</span><span>+${fmtEur(breakdown.igic)}</span>
+         </div>`;
 
     const notesHtml = inv.notes
       ? `<div class="text-slate-600 mt-4">
@@ -171,8 +171,8 @@ export default function InvoicesList() {
            <p class="text-[12px] leading-relaxed italic">${inv.notes}</p>
          </div>` : '';
 
-    const bankCodeHtml = company.bankCode
-      ? `<p class="mt-1">Banco: ${company.bankCode}</p>` : '';
+    const bankCodeHtml = invCompany.bankCode
+      ? `<p class="mt-1">Banco: ${invCompany.bankCode}</p>` : '';
 
     const pageBreakStyle = isLast ? '' : 'style="page-break-after:always;break-after:page;"';
 
@@ -186,12 +186,12 @@ export default function InvoicesList() {
             <img src="${logo_adminp}" alt="LogoAdmin" class="max-h-24 mb-2 object-contain" />
             <div class="text-xs leading-relaxed text-slate-700 font-sans mt-2">
               <span class="font-bold text-slate-900 text-[16px]">Admin+</span><br>
-              ${company.name}<br>
-              ${company.nif ? `${company.nif}<br>` : ''}
-              ${company.address}<br>
-              ${company.zipCode} ${company.city}, ${company.province || company.country}<br>
-              ${company.email ? `${company.email}<br>` : ''}
-              ${company.phone || ''}
+              ${invCompany.name}<br>
+              ${invCompany.nif ? `${invCompany.nif}<br>` : ''}
+              ${invCompany.address}<br>
+              ${invCompany.zipCode} ${invCompany.city}, ${(invCompany as any).province || invCompany.country}<br>
+              ${invCompany.email ? `${invCompany.email}<br>` : ''}
+              ${invCompany.phone || ''}
             </div>
           </div>
           <div class="w-[48%] text-right">
@@ -245,7 +245,7 @@ export default function InvoicesList() {
                   <span>Subtotal</span><span>${fmtEur(breakdown.subtotal)}</span>
                 </div>
                 ${discountRowHtml}
-                ${irpfRowHtml}
+                ${igicRowHtml}
               </div>
               <div class="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
                 <span class="uppercase tracking-widest text-xs">Total</span>
@@ -261,12 +261,12 @@ export default function InvoicesList() {
             <div>
               <h4 class="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
               <p class="mb-1 text-[#1d293d]">Método: Transferencia Bancaria</p>
-              <p class="text-slate-800 mt-1 font-normal">IBAN: ${company.bankAccount}</p>
+              <p class="text-slate-800 mt-1 font-normal">IBAN: ${invCompany.bankAccount}</p>
               ${bankCodeHtml}
             </div>
             <div>
               <h4 class="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
-              <p class="text-justify text-[9px] text-[#1d293d]">${company.legalNotes}</p>
+              <p class="text-justify text-[9px] text-[#1d293d]">${invCompany.legalNotes}</p>
             </div>
           </div>
         </div>
@@ -347,6 +347,7 @@ export default function InvoicesList() {
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${getClientName(inv.clientId)}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${new Date(inv.date).toLocaleDateString('es-ES')}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(total)}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${getCompanyLabel(inv)}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">
             <span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:600;background:${bg};color:${color};-webkit-print-color-adjust:exact;print-color-adjust:exact;">${getStatusLabel(inv.status)}</span>
           </td>
@@ -373,19 +374,19 @@ export default function InvoicesList() {
 <body>
   <h1>Registro de Facturas</h1>
   <div class="meta">
-    <strong>${company.name}</strong> &nbsp;·&nbsp; Generado el ${dateNow}
+    Generado el ${dateNow}
     &nbsp;·&nbsp; Filtro: ${filterLabel}${searchLabel}
     &nbsp;·&nbsp; ${filteredInvoices.length} factura${filteredInvoices.length !== 1 ? 's' : ''}
   </div>
   <table>
     <thead><tr>
       <th>Nº Factura</th><th>Nº Cliente</th><th>Cliente</th><th>Fecha</th>
-      <th class="right">Importe</th><th>Estado</th>
+      <th class="right">Importe</th><th>Empresa</th><th>Estado</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
   <div class="total-row">Total mostrado: <strong>${formatCurrency(totalFilteredAmount)}</strong></div>
-  <div class="footer">${company.name} &mdash; ${company.nif} &mdash; ${company.address}, ${company.zipCode} ${company.city}</div>
+  <div class="footer">${company.name} / ${company2.name}</div>
 </body></html>`;
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -524,6 +525,7 @@ export default function InvoicesList() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Importe</TableHead>
+                <TableHead>Empresa</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -550,6 +552,9 @@ export default function InvoicesList() {
                       <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES')}</TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(getInvoiceTotal(invoice))}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium text-slate-600">{getCompanyLabel(invoice)}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`capitalize ${getStatusColor(invoice.status)}`}>
@@ -591,7 +596,7 @@ export default function InvoicesList() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                     No se encontraron facturas con esos criterios.
                   </TableCell>
                 </TableRow>

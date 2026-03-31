@@ -15,10 +15,8 @@ export default function Dashboard() {
 
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
-    const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
-    const rawBreakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
-    if (applyIrpfFlag) return rawBreakdown.total;
-    return Math.ceil((subtotal - parseFloat(invoice.discount || 0)) * 100) / 100;
+    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
+    return breakdown.total;
   };
 
   const totalSales = invoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);

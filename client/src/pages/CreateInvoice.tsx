@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +23,7 @@ export default function CreateInvoice() {
   const isEditing = !!draftInvoice;
 
   const [selectedClientId, setSelectedClientId] = useState<string>(draftInvoice?.clientId ?? "");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(draftInvoice?.companyId ?? 1);
   const [items, setItems] = useState<InvoiceItem[]>(
     draftInvoice?.items?.length
       ? draftInvoice.items.map(item => ({ ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement) }))
@@ -32,22 +32,16 @@ export default function CreateInvoice() {
   const [discount, setDiscount] = useState(draftInvoice ? toNum(draftInvoice.discount) : 0);
   const [issueDate, setIssueDate] = useState(draftInvoice?.date ?? new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState(draftInvoice?.notes ?? "");
-  const [applyIrpf, setApplyIrpf] = useState(() => {
-    if (draftInvoice) {
-      return draftInvoice.applyIrpf !== false && draftInvoice.applyIrpf !== "false";
-    }
-    return true;
-  });
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   const addItem = () => {
-    setItems([...items, { 
-      id: Math.random().toString(36).substring(7), 
-      description: "", 
-      quantity: 1, 
-      basePrice: 0, 
-      taxIncrement: 0 
+    setItems([...items, {
+      id: Math.random().toString(36).substring(7),
+      description: "",
+      quantity: 1,
+      basePrice: 0,
+      taxIncrement: 0
     }]);
   };
 
@@ -65,14 +59,11 @@ export default function CreateInvoice() {
     const service = services.find(s => s.id === serviceId);
     if (service) {
       const netPrice = toNum(selectedClient?.serviceRates?.[service.name] || service.basePrice);
-      const finalPrice = applyIrpf
-        ? Math.round((netPrice / 0.85) * 100) / 100
-        : netPrice;
-      setItems(items.map(item => item.id === itemId ? { 
-        ...item, 
+      setItems(items.map(item => item.id === itemId ? {
+        ...item,
         serviceId: service.id,
-        description: service.description, 
-        basePrice: finalPrice,
+        description: service.description,
+        basePrice: netPrice,
         taxIncrement: service.taxIncrement
       } : item));
     }
@@ -80,14 +71,11 @@ export default function CreateInvoice() {
 
   const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * toNum(item.basePrice)), 0);
   const subtotal = calculateSubtotal();
-  const rawBreakdown = calculateTaxBreakdown(subtotal, discount);
-  const breakdown = applyIrpf
-    ? rawBreakdown
-    : { ...rawBreakdown, irpf: 0, total: Math.ceil((subtotal - discount) * 100) / 100 };
+  const breakdown = calculateTaxBreakdown(subtotal, discount);
 
-  // Número de factura: YY1XXX donde YY = año actual (2 dígitos), XXX = correlativo del año
+  // Número de factura: YY{companyId}XXX
   const currentYear = new Date().getFullYear().toString().slice(-2);
-  const yearPrefix = `${currentYear}1`;
+  const yearPrefix = `${currentYear}${selectedCompanyId}`;
   const yearCount = invoices.filter(inv => inv.number.startsWith(yearPrefix)).length;
   const nextInvoiceNumber = `${yearPrefix}${String(yearCount + 1).padStart(3, '0')}`;
 
@@ -96,7 +84,7 @@ export default function CreateInvoice() {
       toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
       return;
     }
-    
+
     if (items.some(i => i.basePrice === 0 || !i.description)) {
       toast({ title: "Atención", description: "Algunos conceptos están incompletos", variant: "destructive" });
       return;
@@ -108,11 +96,12 @@ export default function CreateInvoice() {
     if (isEditing && draftInvoice) {
       updateInvoice(draftInvoice.id, {
         clientId: selectedClientId,
+        companyId: selectedCompanyId,
         date: issueDate,
         items,
         discount,
         notes,
-        applyIrpf: String(applyIrpf),
+        applyIrpf: "true",
         status: "pending" as const,
       }, {
         onSuccess: () => {
@@ -125,12 +114,13 @@ export default function CreateInvoice() {
       const newInvoice = {
         number: nextInvoiceNumber,
         clientId: selectedClientId,
+        companyId: selectedCompanyId,
         date: issueDate,
         dueDate: "",
         items,
         discount,
         notes,
-        applyIrpf: String(applyIrpf),
+        applyIrpf: "true",
         status: "pending" as const,
       };
       addInvoice(newInvoice, {
@@ -154,11 +144,12 @@ export default function CreateInvoice() {
     if (isEditing && draftInvoice) {
       updateInvoice(draftInvoice.id, {
         clientId: selectedClientId,
+        companyId: selectedCompanyId,
         date: issueDate,
         items,
         discount,
         notes,
-        applyIrpf: String(applyIrpf),
+        applyIrpf: "true",
         status: "draft" as const,
       }, {
         onSuccess: () => { toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` }); setLocation("/"); },
@@ -168,12 +159,13 @@ export default function CreateInvoice() {
       const newInvoice = {
         number: nextInvoiceNumber,
         clientId: selectedClientId,
+        companyId: selectedCompanyId,
         date: issueDate,
         dueDate: "",
         items,
         discount,
         notes,
-        applyIrpf: String(applyIrpf),
+        applyIrpf: "true",
         status: "draft" as const,
       };
       addInvoice(newInvoice, {
@@ -194,7 +186,7 @@ export default function CreateInvoice() {
             {isEditing ? `Editar Borrador ${draftInvoice?.number}` : "Crear Factura"}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con IRPF y descuentos."}
+            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con IGIC (7%) y descuentos."}
           </p>
         </div>
       </div>
@@ -203,9 +195,25 @@ export default function CreateInvoice() {
         <div className="lg:col-span-3 space-y-6">
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="border-b bg-gray-50/50 pb-4">
-              <CardTitle className="text-lg">Cliente</CardTitle>
+              <CardTitle className="text-lg">Cliente y Empresa</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
+              <div className="space-y-2">
+                <Label>Empresa Emisora</Label>
+                <Select
+                  value={String(selectedCompanyId)}
+                  onValueChange={(val) => setSelectedCompanyId(Number(val))}
+                >
+                  <SelectTrigger className="bg-white" data-testid="select-company">
+                    <SelectValue placeholder="Selecciona empresa..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Empresa 1</SelectItem>
+                    <SelectItem value="2">Empresa 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label>Seleccionar Cliente</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
@@ -330,12 +338,10 @@ export default function CreateInvoice() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(breakdown.subtotal)}</span>
               </div>
-              {applyIrpf && (
-                <div className="flex justify-between opacity-80">
-                  <span>IRPF (15%)</span>
-                  <span className="text-white">-{formatCurrency(breakdown.irpf)}</span>
-                </div>
-              )}
+              <div className="flex justify-between opacity-80">
+                <span>IGIC (7%)</span>
+                <span className="text-green-400">+{formatCurrency(breakdown.igic)}</span>
+              </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>
                 <Input
@@ -359,16 +365,6 @@ export default function CreateInvoice() {
               <CardTitle className="text-lg">Detalles de Emisión</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                <Checkbox
-                  id="apply-irpf"
-                  checked={applyIrpf}
-                  onCheckedChange={(checked) => setApplyIrpf(!!checked)}
-                />
-                <Label htmlFor="apply-irpf" className="text-sm cursor-pointer select-none">
-                  Aplicar IRPF (15%)
-                </Label>
-              </div>
               <div className="space-y-2">
                 <Label className="text-sm">Número de Factura</Label>
                 <Input value={isEditing ? draftInvoice!.number : nextInvoiceNumber} disabled className="text-sm bg-gray-50" />

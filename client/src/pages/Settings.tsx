@@ -5,33 +5,112 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, CompanySettings } from "@/contexts/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
 
-export default function Settings() {
-  const { company, saveCompany, theme, saveTheme, isLoading } = useSettings();
+function CompanyForm({
+  initialData,
+  onSave,
+}: {
+  initialData: CompanySettings;
+  onSave: (data: CompanySettings, cb: { onSuccess: () => void; onError: (e: any) => void }) => void;
+}) {
   const { toast } = useToast();
-  const [companyForm, setCompanyForm] = useState(company);
-  const [themeForm, setThemeForm] = useState(theme);
+  const [form, setForm] = useState(initialData);
 
   useEffect(() => {
-    if (!isLoading) {
-      setCompanyForm(company);
-    }
-  }, [company, isLoading]);
+    setForm(initialData);
+  }, [initialData]);
+
+  const handleSave = () => {
+    onSave(form, {
+      onSuccess: () => toast({ title: "Datos de empresa guardados correctamente" }),
+      onError: (err: any) => toast({ title: "Error al guardar", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
+    });
+  };
+
+  return (
+    <Card className="border-none shadow-sm bg-white">
+      <CardContent className="space-y-4 pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Nombre de la Empresa</Label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>NIF/CIF</Label>
+            <Input value={form.nif} onChange={(e) => setForm({ ...form, nif: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Teléfono</Label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Dirección</Label>
+            <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Ciudad</Label>
+            <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Código Postal</Label>
+            <Input value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>País</Label>
+            <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Sitio Web</Label>
+            <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="font-semibold mb-4">Datos Bancarios</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 md:col-span-2">
+              <Label>IBAN</Label>
+              <Input value={form.bankAccount} onChange={(e) => setForm({ ...form, bankAccount: e.target.value })} placeholder="ES00 0000 0000 0000 0000 0000" />
+            </div>
+            <div className="space-y-2">
+              <Label>Código BIC</Label>
+              <Input value={form.bankCode} onChange={(e) => setForm({ ...form, bankCode: e.target.value })} />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="font-semibold mb-4">Notas Legales</h3>
+          <div className="space-y-2">
+            <Label>Texto que aparecerá en el pie de página de las facturas</Label>
+            <Textarea value={form.legalNotes} onChange={(e) => setForm({ ...form, legalNotes: e.target.value })} rows={4} />
+          </div>
+        </div>
+
+        <Button onClick={handleSave} className="w-full mt-6">
+          Guardar Cambios
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function Settings() {
+  const { company, company2, saveCompany, saveCompany2, theme, saveTheme, isLoading } = useSettings();
+  const { toast } = useToast();
+  const [themeForm, setThemeForm] = useState(theme);
 
   useEffect(() => {
     if (!isLoading) {
       setThemeForm(theme);
     }
   }, [theme, isLoading]);
-
-  const handleSaveCompany = () => {
-    saveCompany(companyForm, {
-      onSuccess: () => toast({ title: "Datos de empresa guardados correctamente" }),
-      onError: (err: any) => toast({ title: "Error al guardar", description: err?.message || "Inténtalo de nuevo", variant: "destructive" }),
-    });
-  };
 
   const handleSaveTheme = () => {
     saveTheme(themeForm, {
@@ -44,87 +123,30 @@ export default function Settings() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
-        <p className="text-muted-foreground mt-1">Personaliza tu empresa y la apariencia de la aplicación.</p>
+        <p className="text-muted-foreground mt-1">Personaliza tus empresas y la apariencia de la aplicación.</p>
       </div>
 
-      <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="company">Empresa</TabsTrigger>
+      <Tabs defaultValue="company1" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="company1">Empresa 1</TabsTrigger>
+          <TabsTrigger value="company2">Empresa 2</TabsTrigger>
           <TabsTrigger value="theme">Tema</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="company" className="space-y-6">
-          <Card className="border-none shadow-sm bg-white">
-            <CardHeader>
-              <CardTitle>Datos de la Empresa</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nombre de la Empresa</Label>
-                  <Input value={companyForm.name} onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>NIF/CIF</Label>
-                  <Input value={companyForm.nif} onChange={(e) => setCompanyForm({ ...companyForm, nif: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input type="email" value={companyForm.email} onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Teléfono</Label>
-                  <Input value={companyForm.phone} onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })} />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Dirección</Label>
-                  <Input value={companyForm.address} onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ciudad</Label>
-                  <Input value={companyForm.city} onChange={(e) => setCompanyForm({ ...companyForm, city: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Código Postal</Label>
-                  <Input value={companyForm.zipCode} onChange={(e) => setCompanyForm({ ...companyForm, zipCode: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>País</Label>
-                  <Input value={companyForm.country} onChange={(e) => setCompanyForm({ ...companyForm, country: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Sitio Web</Label>
-                  <Input value={companyForm.website} onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })} />
-                </div>
-              </div>
+        <TabsContent value="company1" className="space-y-6">
+          <div className="pt-2 px-1">
+            <h2 className="text-lg font-semibold">Datos de la Empresa 1</h2>
+            <p className="text-sm text-muted-foreground">Información principal de la primera empresa emisora de facturas.</p>
+          </div>
+          <CompanyForm initialData={company} onSave={saveCompany} />
+        </TabsContent>
 
-              <div className="border-t pt-6">
-                <h3 className="font-semibold mb-4">Datos Bancarios</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>IBAN</Label>
-                    <Input value={companyForm.bankAccount} onChange={(e) => setCompanyForm({ ...companyForm, bankAccount: e.target.value })} placeholder="ES00 0000 0000 0000 0000 0000" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Código BIC</Label>
-                    <Input value={companyForm.bankCode} onChange={(e) => setCompanyForm({ ...companyForm, bankCode: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t pt-6">
-                <h3 className="font-semibold mb-4">Notas Legales</h3>
-                <div className="space-y-2">
-                  <Label>Texto que aparecerá en el pie de página de las facturas</Label>
-                  <Textarea value={companyForm.legalNotes} onChange={(e) => setCompanyForm({ ...companyForm, legalNotes: e.target.value })} rows={4} />
-                </div>
-              </div>
-
-              <Button onClick={handleSaveCompany} className="w-full mt-6">
-                Guardar Cambios
-              </Button>
-            </CardContent>
-          </Card>
+        <TabsContent value="company2" className="space-y-6">
+          <div className="pt-2 px-1">
+            <h2 className="text-lg font-semibold">Datos de la Empresa 2</h2>
+            <p className="text-sm text-muted-foreground">Información de la segunda empresa emisora de facturas.</p>
+          </div>
+          <CompanyForm initialData={company2} onSave={saveCompany2} />
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-6">

@@ -132,6 +132,7 @@ export async function registerRoutes(
   const invoiceWithItemsSchema = z.object({
     number: z.string(),
     clientId: z.string(),
+    companyId: z.number().int().optional().default(1),
     date: z.string(),
     dueDate: z.string().optional().default(""),
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
@@ -162,6 +163,7 @@ export async function registerRoutes(
 
   const invoicePatchSchema = z.object({
     clientId: z.string().optional(),
+    companyId: z.number().int().optional(),
     date: z.string().optional(),
     dueDate: z.string().optional(),
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
@@ -217,6 +219,30 @@ export async function registerRoutes(
       res.json(settings);
     } catch (err) {
       serverError(res, "Error al guardar configuración", err);
+    }
+  });
+
+  app.get("/api/settings/company/:companyId", async (req, res) => {
+    try {
+      const id = parseInt(req.params.companyId);
+      if (isNaN(id) || id < 1 || id > 2) return res.status(400).json({ message: "ID de empresa inválido" });
+      const settings = await storage.getCompanySettingsById(id);
+      res.json(settings || null);
+    } catch (err) {
+      serverError(res, "Error al obtener configuración de empresa", err);
+    }
+  });
+
+  app.post("/api/settings/company/:companyId", async (req, res) => {
+    try {
+      const id = parseInt(req.params.companyId);
+      if (isNaN(id) || id < 1 || id > 2) return res.status(400).json({ message: "ID de empresa inválido" });
+      const parsed = insertCompanySettingsSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Datos inválidos", errors: parsed.error.errors });
+      const settings = await storage.saveCompanySettingsById(id, parsed.data);
+      res.json(settings);
+    } catch (err) {
+      serverError(res, "Error al guardar configuración de empresa", err);
     }
   });
 

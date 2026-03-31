@@ -35,6 +35,8 @@ export interface IStorage {
   // Company settings
   getCompanySettings(): Promise<CompanySettings | undefined>;
   saveCompanySettings(data: InsertCompanySettings): Promise<CompanySettings>;
+  getCompanySettingsById(id: number): Promise<CompanySettings | undefined>;
+  saveCompanySettingsById(id: number, data: InsertCompanySettings): Promise<CompanySettings>;
 
   // Theme settings
   getThemeSettings(): Promise<ThemeSettings | undefined>;
@@ -140,12 +142,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveCompanySettings(data: InsertCompanySettings): Promise<CompanySettings> {
-    const existing = await this.getCompanySettings();
+    return this.saveCompanySettingsById(1, data);
+  }
+
+  async getCompanySettingsById(id: number): Promise<CompanySettings | undefined> {
+    const [settings] = await db.select().from(companySettings).where(eq(companySettings.id, id));
+    return settings;
+  }
+
+  async saveCompanySettingsById(id: number, data: InsertCompanySettings): Promise<CompanySettings> {
+    const existing = await this.getCompanySettingsById(id);
     if (existing) {
-      const [updated] = await db.update(companySettings).set(data).where(eq(companySettings.id, 1)).returning();
+      const [updated] = await db.update(companySettings).set(data).where(eq(companySettings.id, id)).returning();
       return updated;
     }
-    const [created] = await db.insert(companySettings).values({ ...data, id: 1 }).returning();
+    const [created] = await db.insert(companySettings).values({ ...data, id }).returning();
     return created;
   }
 

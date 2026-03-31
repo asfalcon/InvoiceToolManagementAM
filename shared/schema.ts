@@ -45,6 +45,7 @@ export const invoices = pgTable("invoices", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   number: text("number").notNull().unique(),
   clientId: varchar("client_id").notNull(),
+  companyId: integer("company_id").notNull().default(1),
   date: text("date").notNull(),
   dueDate: text("due_date").notNull().default(""),
   discount: numeric("discount", { precision: 12, scale: 2 }).notNull().default("0"),

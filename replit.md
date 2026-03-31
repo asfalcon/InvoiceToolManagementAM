@@ -1,7 +1,7 @@
 # S&A - Financial Management
 
 ## Descripción
-Aplicación de gestión de facturación para pequeñas empresas en España (Canarias). Permite crear y gestionar facturas, clientes y servicios con exportación a PDF. El sistema fiscal usa IRPF 15% (sin IVA/IGIC).
+Aplicación de gestión de facturación para pequeñas empresas en Canarias. Permite crear y gestionar facturas, clientes y servicios con exportación a PDF. El sistema fiscal usa IGIC 7% (sumado al subtotal, siempre aplicado). Soporta 2 empresas emisoras de facturas (Empresa 1 y Empresa 2).
 
 ## Arquitectura
 

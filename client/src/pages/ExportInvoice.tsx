@@ -19,7 +19,7 @@ import logo_adminp from "@assets/logo_adminp.png";
 export default function ExportInvoice() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
-  const { company, invoices, clients, markInvoiceAsPaid, updateInvoice } =
+  const { company, company2, invoices, clients, markInvoiceAsPaid, updateInvoice } =
     useSettings();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
@@ -45,11 +45,8 @@ export default function ExportInvoice() {
     (sum, item) => sum + item.quantity * toNum(item.basePrice),
     0,
   );
-  const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
-  const rawBreakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
-  const breakdown = applyIrpfFlag
-    ? rawBreakdown
-    : { ...rawBreakdown, irpf: 0, total: Math.ceil((subtotal - toNum(invoice.discount)) * 100) / 100 };
+  const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
+  const invCompany = (invoice.companyId === 2) ? company2 : company;
 
   const handlePrint = () => {
     if (!invoiceRef.current) return;
@@ -130,26 +127,26 @@ export default function ExportInvoice() {
                     Admin+
                   </span>
                   <br />
-                  {company.name}
+                  {invCompany.name}
                   <br />
-                  {company.nif && (
+                  {invCompany.nif && (
                     <span>
-                      {company.nif}
+                      {invCompany.nif}
                       <br />
                     </span>
                   )}
-                  {company.address}
+                  {invCompany.address}
                   <br />
-                  {company.zipCode} {company.city},{" "}
-                  {company.province || company.country}
+                  {invCompany.zipCode} {invCompany.city},{" "}
+                  {(invCompany as any).province || invCompany.country}
                   <br />
-                  {company.email && (
+                  {invCompany.email && (
                     <span>
-                      {company.email}
+                      {invCompany.email}
                       <br />
                     </span>
                   )}
-                  {company.phone && <span>{company.phone}</span>}
+                  {invCompany.phone && <span>{invCompany.phone}</span>}
                 </div>
               </div>
 
@@ -275,12 +272,10 @@ export default function ExportInvoice() {
                         <span>-{formatEuros(toNum(invoice.discount))}</span>
                       </div>
                     )}
-                    {applyIrpfFlag && (
-                      <div className="flex justify-between py-2 px-4 text-slate-800">
-                        <span>IRPF (15%)</span>
-                        <span>-{formatEuros(breakdown.irpf)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between py-2 px-4 text-slate-800">
+                      <span>IGIC (7%)</span>
+                      <span>+{formatEuros(breakdown.igic)}</span>
+                    </div>
                   </div>
                   <div className="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
                     <span className="uppercase tracking-widest text-xs">
@@ -303,10 +298,10 @@ export default function ExportInvoice() {
                   </h4>
                   <p className="mb-1 text-[#1d293d] bg-[transparent]">Método: Transferencia Bancaria</p>
                   <p className="text-slate-800 mt-1 font-normal">
-                    IBAN: {company.bankAccount}
+                    IBAN: {invCompany.bankAccount}
                   </p>
-                  {company.bankCode && (
-                    <p className="mt-1">Banco: {company.bankCode}</p>
+                  {invCompany.bankCode && (
+                    <p className="mt-1">Banco: {invCompany.bankCode}</p>
                   )}
                 </div>
                 <div>
@@ -314,7 +309,7 @@ export default function ExportInvoice() {
                     Información Legal
                   </h4>
                   <p className="text-justify text-[9px] text-[#1d293d] bg-[transparent]">
-                    {company.legalNotes}
+                    {invCompany.legalNotes}
                   </p>
                 </div>
               </div>

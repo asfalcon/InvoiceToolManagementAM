@@ -65,6 +65,7 @@ export type Invoice = {
   id: string;
   number: string;
   clientId: string;
+  companyId: number;
   date: string;
   dueDate: string;
   items: InvoiceItem[];
@@ -102,7 +103,9 @@ type MutationCallbacks = { onSuccess?: () => void; onError?: (err: any) => void 
 
 type SettingsContextType = {
   company: CompanySettings;
+  company2: CompanySettings;
   saveCompany: (data: CompanySettings, cb?: MutationCallbacks) => void;
+  saveCompany2: (data: CompanySettings, cb?: MutationCallbacks) => void;
   theme: ThemeSettings;
   saveTheme: (data: ThemeSettings, cb?: MutationCallbacks) => void;
   services: Service[];
@@ -126,10 +129,16 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [company, setCompany] = useState<CompanySettings>(DEFAULT_COMPANY);
+  const [company2, setCompany2] = useState<CompanySettings>(DEFAULT_COMPANY);
   const [theme, setTheme] = useState<ThemeSettings>(DEFAULT_THEME);
 
   const { data: companyData, isLoading: loadingCompany } = useQuery<CompanySettings>({
-    queryKey: ["/api/settings/company"],
+    queryKey: ["/api/settings/company/1"],
+    staleTime: Infinity,
+  });
+
+  const { data: company2Data, isLoading: loadingCompany2 } = useQuery<CompanySettings>({
+    queryKey: ["/api/settings/company/2"],
     staleTime: Infinity,
   });
 
@@ -153,11 +162,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     staleTime: Infinity,
   });
 
-  const isLoading = loadingCompany || loadingTheme || loadingServices || loadingClients || loadingInvoices;
+  const isLoading = loadingCompany || loadingCompany2 || loadingTheme || loadingServices || loadingClients || loadingInvoices;
 
   useEffect(() => {
     if (companyData) setCompany(companyData);
   }, [companyData]);
+
+  useEffect(() => {
+    if (company2Data) setCompany2(company2Data);
+  }, [company2Data]);
 
   useEffect(() => {
     if (themeData) {
@@ -167,10 +180,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [themeData]);
 
   const saveCompanyMutation = useMutation({
-    mutationFn: (data: CompanySettings) => apiRequest("POST", "/api/settings/company", data).then(r => r.json()),
+    mutationFn: (data: CompanySettings) => apiRequest("POST", "/api/settings/company/1", data).then(r => r.json()),
     onSuccess: (data) => {
       setCompany(data);
-      qc.invalidateQueries({ queryKey: ["/api/settings/company"] });
+      qc.invalidateQueries({ queryKey: ["/api/settings/company/1"] });
+    },
+  });
+
+  const saveCompany2Mutation = useMutation({
+    mutationFn: (data: CompanySettings) => apiRequest("POST", "/api/settings/company/2", data).then(r => r.json()),
+    onSuccess: (data) => {
+      setCompany2(data);
+      qc.invalidateQueries({ queryKey: ["/api/settings/company/2"] });
     },
   });
 
@@ -232,10 +253,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const addInvoiceMutation = useMutation({
     mutationFn: (invoice: Omit<Invoice, "id">) => apiRequest("POST", "/api/invoices", {
-      number: invoice.number, clientId: invoice.clientId, date: invoice.date,
+      number: invoice.number, clientId: invoice.clientId,
+      companyId: invoice.companyId ?? 1,
+      date: invoice.date,
       dueDate: invoice.dueDate || "", discount: String(invoice.discount || 0),
       notes: invoice.notes || "", status: invoice.status || "pending",
-      applyIrpf: invoice.applyIrpf !== undefined ? String(invoice.applyIrpf) : "true",
+      applyIrpf: "true",
       items: invoice.items.map(item => ({
         serviceId: item.serviceId,
         description: item.description,
@@ -260,7 +283,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const value: SettingsContextType = {
     company,
+    company2,
     saveCompany: (data, cb) => saveCompanyMutation.mutate(data, cb),
+    saveCompany2: (data, cb) => saveCompany2Mutation.mutate(data, cb),
     theme,
     saveTheme: (data, cb) => saveThemeMutation.mutate(data, cb),
     services: servicesData,

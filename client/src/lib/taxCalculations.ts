@@ -5,16 +5,14 @@ export function toNum(value: string | number | undefined | null): number {
 
 export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
   const base = subtotal;
-  const irpf = base * 0.15;
+  const igic = base * 0.07;
   const finalDiscount = discount;
-  const total = base - irpf - finalDiscount;
+  const total = base + igic - finalDiscount;
 
   return {
     subtotal: base,
-    irpf,
+    igic,
     discount: finalDiscount,
-    taxableBase: 0,
-    igic: 0,
     total,
   };
 }

@@ -37,6 +37,7 @@ export type Invoice = {
   id: string;
   number: string;
   clientId: string;
+  companyId: number;
   date: string;
   dueDate: string;
   items: InvoiceItem[];
