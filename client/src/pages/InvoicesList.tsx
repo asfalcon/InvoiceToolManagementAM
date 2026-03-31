@@ -42,6 +42,9 @@ export default function InvoicesList() {
   const getClientName = (clientId: string) =>
     clients.find(c => c.id === clientId)?.name || "Cliente Desconocido";
 
+  const getClientNumber = (clientId: string) =>
+    clients.find(c => c.id === clientId)?.clientNumber || "";
+
   const getClient = (clientId: string) =>
     clients.find(c => c.id === clientId);
 
@@ -321,6 +324,7 @@ export default function InvoicesList() {
       return `
         <tr style="background:${rowBg};">
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-family:monospace;">${inv.number}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-family:monospace;color:#64748b;">${getClientNumber(inv.clientId)}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${getClientName(inv.clientId)}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${new Date(inv.date).toLocaleDateString('es-ES')}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(total)}</td>
@@ -356,7 +360,7 @@ export default function InvoicesList() {
   </div>
   <table>
     <thead><tr>
-      <th>Nº Factura</th><th>Cliente</th><th>Fecha</th>
+      <th>Nº Factura</th><th>Nº Cliente</th><th>Cliente</th><th>Fecha</th>
       <th class="right">Importe</th><th>Estado</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -482,6 +486,7 @@ export default function InvoicesList() {
                   />
                 </TableHead>
                 <TableHead className="w-[120px]">Nº Factura</TableHead>
+                <TableHead className="w-[100px]">Nº Cliente</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Importe</TableHead>
@@ -506,6 +511,7 @@ export default function InvoicesList() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{invoice.number}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">{getClientNumber(invoice.clientId)}</TableCell>
                       <TableCell>{getClientName(invoice.clientId)}</TableCell>
                       <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES')}</TableCell>
                       <TableCell className="text-right font-medium">
@@ -551,7 +557,7 @@ export default function InvoicesList() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                     No se encontraron facturas con esos criterios.
                   </TableCell>
                 </TableRow>

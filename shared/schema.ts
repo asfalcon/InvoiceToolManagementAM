@@ -13,6 +13,7 @@ export const clients = pgTable("clients", {
   city: text("city").notNull().default(""),
   zipCode: text("zip_code").notNull().default(""),
   country: text("country").notNull().default("España"),
+  clientNumber: text("client_number").notNull().default(""),
   billingType: text("billing_type").notNull().default("standard"),
   customFields: jsonb("custom_fields").notNull().default({}),
   serviceRates: jsonb("service_rates").notNull().default({}),

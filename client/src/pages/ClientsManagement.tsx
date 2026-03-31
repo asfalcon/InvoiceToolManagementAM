@@ -25,6 +25,7 @@ export default function ClientsManagement() {
     city: "",
     zipCode: "",
     country: "España",
+    clientNumber: "",
     billingType: "standard",
     customFields: {},
     serviceRates: {},
@@ -41,7 +42,7 @@ export default function ClientsManagement() {
     const resetForm = () => {
       setIsOpen(false);
       setEditingId(null);
-      setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", billingType: "standard", customFields: {}, serviceRates: {} });
+      setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", clientNumber: "", billingType: "standard", customFields: {}, serviceRates: {} });
     };
 
     if (editingId) {
@@ -74,7 +75,7 @@ export default function ClientsManagement() {
           setIsOpen(open);
           if (!open) {
             setEditingId(null);
-            setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", billingType: "standard", customFields: {}, serviceRates: {} });
+            setFormData({ name: "", nif: "", email: "", phone: "", address: "", city: "", zipCode: "", country: "España", clientNumber: "", billingType: "standard", customFields: {}, serviceRates: {} });
           }
         }}>
           <DialogTrigger asChild>
@@ -95,6 +96,10 @@ export default function ClientsManagement() {
                 <div className="space-y-2">
                   <Label>NIF/CIF</Label>
                   <Input value={formData.nif || ""} onChange={(e) => setFormData({ ...formData, nif: e.target.value })} placeholder="B12345678" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Nº Cliente</Label>
+                  <Input value={formData.clientNumber || ""} onChange={(e) => setFormData({ ...formData, clientNumber: e.target.value })} placeholder="Ej. 001" />
                 </div>
                 <div className="space-y-2">
                   <Label>Email</Label>
@@ -178,6 +183,9 @@ export default function ClientsManagement() {
               <div>
                 <CardTitle className="text-lg">{client.name}</CardTitle>
                 <p className="text-sm text-muted-foreground font-mono mt-1">{client.nif}</p>
+                {client.clientNumber && (
+                  <p className="text-xs text-primary font-semibold mt-1">Nº Cliente: {client.clientNumber}</p>
+                )}
               </div>
               <div className="flex gap-1">
                 <Button
