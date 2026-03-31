@@ -283,7 +283,7 @@ export default function ExportInvoice() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center py-3 px-4 font-bold bg-[transparent] text-[#1d293d]">
-                    <span className="uppercase tracking-widest text-xs">
+                    <span className="uppercase tracking-widest text-[18px]">
                       Total
                     </span>
                     <span className="text-lg">
