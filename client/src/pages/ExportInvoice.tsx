@@ -16,11 +16,19 @@ import { useRef } from "react";
 
 import logo_adminp from "@assets/logo_adminp.png";
 
+import Logo_AM from "@assets/Logo AM.png";
+
 export default function ExportInvoice() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
-  const { company, company2, invoices, clients, markInvoiceAsPaid, updateInvoice } =
-    useSettings();
+  const {
+    company,
+    company2,
+    invoices,
+    clients,
+    markInvoiceAsPaid,
+    updateInvoice,
+  } = useSettings();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const invoice = invoices.find((i) => i.id === id);
@@ -46,7 +54,7 @@ export default function ExportInvoice() {
     0,
   );
   const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
-  const invCompany = (invoice.companyId === 2) ? company2 : company;
+  const invCompany = invoice.companyId === 2 ? company2 : company;
 
   const handlePrint = () => {
     if (!invoiceRef.current) return;
@@ -118,14 +126,11 @@ export default function ExportInvoice() {
               {/* Top Left: Company */}
               <div className="w-[48%]">
                 <img
-                  src={logo_adminp}
+                  src={Logo_AM}
                   alt="LogoAdmin"
                   className="max-h-24 mb-2 object-contain"
                 />
                 <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-                  <span className="font-bold text-slate-900 text-[16px]">
-                    Admin+
-                  </span>
                   <br />
                   {invCompany.name}
                   <br />
@@ -296,7 +301,9 @@ export default function ExportInvoice() {
                   <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">
                     Información de Pago
                   </h4>
-                  <p className="mb-1 text-[#1d293d] bg-[transparent]">Método: Transferencia Bancaria</p>
+                  <p className="mb-1 text-[#1d293d] bg-[transparent]">
+                    Método: Transferencia Bancaria
+                  </p>
                   <p className="text-slate-800 mt-1 font-normal">
                     IBAN: {invCompany.bankAccount}
                   </p>
