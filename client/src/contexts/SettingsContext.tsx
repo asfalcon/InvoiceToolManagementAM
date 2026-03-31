@@ -70,6 +70,7 @@ export type Invoice = {
   items: InvoiceItem[];
   discount: string | number;
   notes: string;
+  applyIrpf?: string | boolean;
   status: "draft" | "pending" | "paid" | "overdue";
 };
 
@@ -234,6 +235,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       number: invoice.number, clientId: invoice.clientId, date: invoice.date,
       dueDate: invoice.dueDate || "", discount: String(invoice.discount || 0),
       notes: invoice.notes || "", status: invoice.status || "pending",
+      applyIrpf: invoice.applyIrpf !== undefined ? String(invoice.applyIrpf) : "true",
       items: invoice.items.map(item => ({
         serviceId: item.serviceId,
         description: item.description,
