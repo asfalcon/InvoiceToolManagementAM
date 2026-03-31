@@ -125,10 +125,9 @@ export default function Settings() {
         <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
         <p className="text-muted-foreground mt-1">Personaliza tus empresas y la apariencia de la aplicación.</p>
       </div>
-
       <Tabs defaultValue="company1" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="company1">Empresa 1</TabsTrigger>
+          <TabsTrigger value="company1">Miguel Ángel</TabsTrigger>
           <TabsTrigger value="company2">Empresa 2</TabsTrigger>
           <TabsTrigger value="theme">Tema</TabsTrigger>
         </TabsList>
