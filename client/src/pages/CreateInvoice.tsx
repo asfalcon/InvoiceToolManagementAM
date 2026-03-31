@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,7 @@ export default function CreateInvoice() {
   const [discount, setDiscount] = useState(draftInvoice ? toNum(draftInvoice.discount) : 0);
   const [issueDate, setIssueDate] = useState(draftInvoice?.date ?? new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState(draftInvoice?.notes ?? "");
+  const [applyIrpf, setApplyIrpf] = useState(true);
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
@@ -58,12 +60,14 @@ export default function CreateInvoice() {
     const service = services.find(s => s.id === serviceId);
     if (service) {
       const netPrice = toNum(selectedClient?.serviceRates?.[service.name] || service.basePrice);
-      const grossPrice = Math.round((netPrice / 0.85) * 100) / 100;
+      const finalPrice = applyIrpf
+        ? Math.round((netPrice / 0.85) * 100) / 100
+        : netPrice;
       setItems(items.map(item => item.id === itemId ? { 
         ...item, 
         serviceId: service.id,
         description: service.description, 
-        basePrice: grossPrice,
+        basePrice: finalPrice,
         taxIncrement: service.taxIncrement
       } : item));
     }
@@ -71,7 +75,10 @@ export default function CreateInvoice() {
 
   const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * toNum(item.basePrice)), 0);
   const subtotal = calculateSubtotal();
-  const breakdown = calculateTaxBreakdown(subtotal, discount);
+  const rawBreakdown = calculateTaxBreakdown(subtotal, discount);
+  const breakdown = applyIrpf
+    ? rawBreakdown
+    : { ...rawBreakdown, irpf: 0, total: Math.ceil((subtotal - discount) * 100) / 100 };
 
   // Generate next invoice number based on YY1YYY format
   // YY = last two digits of current year, YYY = progressive number starting at 001
@@ -313,10 +320,12 @@ export default function CreateInvoice() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(breakdown.subtotal)}</span>
               </div>
-              <div className="flex justify-between opacity-80">
-                <span>IRPF (15%)</span>
-                <span className="text-white">-{formatCurrency(breakdown.irpf)}</span>
-              </div>
+              {applyIrpf && (
+                <div className="flex justify-between opacity-80">
+                  <span>IRPF (15%)</span>
+                  <span className="text-white">-{formatCurrency(breakdown.irpf)}</span>
+                </div>
+              )}
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>
                 <Input
@@ -340,7 +349,17 @@ export default function CreateInvoice() {
               <CardTitle className="text-lg">Detalles de Emisión</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-               <div className="space-y-2">
+              <div className="flex items-center gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
+                <Checkbox
+                  id="apply-irpf"
+                  checked={applyIrpf}
+                  onCheckedChange={(checked) => setApplyIrpf(!!checked)}
+                />
+                <Label htmlFor="apply-irpf" className="text-sm cursor-pointer select-none">
+                  Aplicar IRPF (15%)
+                </Label>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-sm">Número de Factura</Label>
                 <Input value={isEditing ? draftInvoice!.number : nextInvoiceNumber} disabled className="text-sm bg-gray-50" />
               </div>
