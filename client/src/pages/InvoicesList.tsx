@@ -72,11 +72,13 @@ export default function InvoicesList() {
     const dateStr = new Date(inv.date).toLocaleDateString('es-ES');
     const amountStr = formatCurrency(getInvoiceTotal(inv));
     const statusStr = getStatusLabel(inv.status).toLowerCase();
+    const empresaStr = getCompanyLabel(inv).toLowerCase();
 
     switch (searchColumn) {
       case "number":       return inv.number.toLowerCase().includes(search);
       case "clientNumber": return clientNumber.includes(search);
       case "client":       return clientName.includes(search);
+      case "empresa":      return empresaStr.includes(search);
       case "date":         return dateStr.includes(search);
       case "amount":       return amountStr.includes(search);
       case "status":       return statusStr.includes(search);
@@ -85,6 +87,7 @@ export default function InvoicesList() {
           inv.number.toLowerCase().includes(search) ||
           clientNumber.includes(search) ||
           clientName.includes(search) ||
+          empresaStr.includes(search) ||
           dateStr.includes(search) ||
           amountStr.includes(search) ||
           statusStr.includes(search)
@@ -461,6 +464,7 @@ export default function InvoicesList() {
               <option value="number">Nº Factura</option>
               <option value="clientNumber">Nº Cliente</option>
               <option value="client">Cliente</option>
+              <option value="empresa">Empresa</option>
               <option value="date">Fecha</option>
               <option value="amount">Importe</option>
               <option value="status">Estado</option>
