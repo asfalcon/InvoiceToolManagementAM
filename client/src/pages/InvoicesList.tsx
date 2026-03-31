@@ -34,6 +34,7 @@ const getStatusLabel = (status: string) => {
 
 export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchColumn, setSearchColumn] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
@@ -57,18 +58,34 @@ export default function InvoicesList() {
   };
 
   const filteredInvoices = invoices.filter(inv => {
-    const search = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase().trim();
+    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+    if (!matchesStatus) return false;
+    if (!search) return true;
+
     const clientName = getClientName(inv.clientId).toLowerCase();
     const clientNumber = getClientNumber(inv.clientId).toLowerCase();
-    const matchesSearch =
-      clientName.includes(search) ||
-      inv.number.toLowerCase().includes(search) ||
-      clientNumber.includes(search) ||
-      new Date(inv.date).toLocaleDateString('es-ES').includes(search) ||
-      formatCurrency(getInvoiceTotal(inv)).includes(search) ||
-      getStatusLabel(inv.status).toLowerCase().includes(search);
-    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const dateStr = new Date(inv.date).toLocaleDateString('es-ES');
+    const amountStr = formatCurrency(getInvoiceTotal(inv));
+    const statusStr = getStatusLabel(inv.status).toLowerCase();
+
+    switch (searchColumn) {
+      case "number":       return inv.number.toLowerCase().includes(search);
+      case "clientNumber": return clientNumber.includes(search);
+      case "client":       return clientName.includes(search);
+      case "date":         return dateStr.includes(search);
+      case "amount":       return amountStr.includes(search);
+      case "status":       return statusStr.includes(search);
+      default:
+        return (
+          inv.number.toLowerCase().includes(search) ||
+          clientNumber.includes(search) ||
+          clientName.includes(search) ||
+          dateStr.includes(search) ||
+          amountStr.includes(search) ||
+          statusStr.includes(search)
+        );
+    }
   });
 
   const totalFilteredAmount = filteredInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
@@ -433,15 +450,30 @@ export default function InvoicesList() {
 
       <Card className="border-none shadow-sm bg-white overflow-hidden">
         <div className="p-4 border-b flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              data-testid="input-search-invoice"
-              placeholder="Buscar por cliente, nº cliente, número, fecha, importe..."
-              className="pl-9 bg-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex items-center border rounded-md bg-white overflow-hidden w-full sm:w-auto shadow-sm">
+            <select
+              value={searchColumn}
+              onChange={(e) => { setSearchColumn(e.target.value); setSearchTerm(""); }}
+              className="border-r text-xs px-2 py-2 bg-gray-50 focus:outline-none cursor-pointer text-slate-600 font-medium shrink-0 h-9"
+            >
+              <option value="all">Todos los campos</option>
+              <option value="number">Nº Factura</option>
+              <option value="clientNumber">Nº Cliente</option>
+              <option value="client">Cliente</option>
+              <option value="date">Fecha</option>
+              <option value="amount">Importe</option>
+              <option value="status">Estado</option>
+            </select>
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                data-testid="input-search-invoice"
+                placeholder="Buscar..."
+                className="pl-9 pr-3 py-2 text-sm w-full focus:outline-none bg-white h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <DropdownMenu>
