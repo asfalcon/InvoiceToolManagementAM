@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Download, MoreHorizontal, Users, FileText } from "lucide-react";
+import { Plus, Search, Filter, Download, MoreHorizontal, Users, FileText, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -34,7 +34,7 @@ export default function InvoicesList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [, setLocation] = useLocation();
-  const { invoices, clients, markInvoiceAsPaid, updateInvoice } = useSettings();
+  const { invoices, clients, markInvoiceAsPaid, updateInvoice, company } = useSettings();
 
   const getClientName = (clientId: string) => {
     return clients.find(c => c.id === clientId)?.name || "Cliente Desconocido";
@@ -73,6 +73,87 @@ export default function InvoicesList() {
 
   // Calculate total amount of filtered invoices
   const totalFilteredAmount = filteredInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+
+  const handlePrintList = () => {
+    const dateNow = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+    const filterLabel = statusFilter === 'all' ? 'Todos los estados' : getStatusLabel(statusFilter);
+    const searchLabel = searchTerm ? ` · Búsqueda: "${searchTerm}"` : '';
+
+    const statusColors: Record<string, string> = {
+      paid: '#065f46', pending: '#92400e', overdue: '#991b1b', draft: '#374151',
+    };
+    const statusBgs: Record<string, string> = {
+      paid: '#d1fae5', pending: '#fef3c7', overdue: '#fee2e2', draft: '#f3f4f6',
+    };
+
+    const rows = filteredInvoices.map((inv, idx) => {
+      const total = getInvoiceTotal(inv);
+      const statusLabel = getStatusLabel(inv.status);
+      const color = statusColors[inv.status] || '#374151';
+      const bg = statusBgs[inv.status] || '#f3f4f6';
+      const rowBg = idx % 2 === 1 ? '#f8fafc' : '#ffffff';
+      return `
+        <tr style="background:${rowBg};">
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-family:monospace;">${inv.number}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${getClientName(inv.clientId)}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${new Date(inv.date).toLocaleDateString('es-ES')}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(total)}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">
+            <span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:600;background:${bg};color:${color};-webkit-print-color-adjust:exact;print-color-adjust:exact;">${statusLabel}</span>
+          </td>
+        </tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Registro_Facturas_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}</title>
+<style>
+  @page { size: A4 portrait; margin: 18mm 16mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1e293b; margin: 0; background: #fff; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #1e293b; }
+  .meta { color: #64748b; font-size: 11px; margin-bottom: 20px; border-bottom: 2px solid #C5B8A9; padding-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #C5B8A9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  thead th { padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #1e293b; }
+  thead th.right { text-align: right; }
+  tbody tr:nth-child(even) { background: #f8fafc !important; }
+  .total-row { margin-top: 20px; text-align: right; font-size: 14px; color: #374151; border-top: 2px solid #C5B8A9; padding-top: 10px; }
+  .total-row strong { font-size: 17px; color: #1e293b; }
+  .footer { margin-top: 20px; font-size: 10px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+</style></head>
+<body>
+  <h1>Registro de Facturas</h1>
+  <div class="meta">
+    <strong>${company.name}</strong> &nbsp;·&nbsp; Generado el ${dateNow}
+    &nbsp;·&nbsp; Filtro: ${filterLabel}${searchLabel}
+    &nbsp;·&nbsp; ${filteredInvoices.length} factura${filteredInvoices.length !== 1 ? 's' : ''}
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Nº Factura</th>
+        <th>Cliente</th>
+        <th>Fecha</th>
+        <th class="right">Importe</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="total-row">
+    Total mostrado: <strong>${formatCurrency(totalFilteredAmount)}</strong>
+  </div>
+  <div class="footer">${company.name} &mdash; ${company.nif} &mdash; ${company.address}, ${company.zipCode} ${company.city}</div>
+  <script>window.onload = function(){ window.print(); setTimeout(function(){ window.close(); }, 500); }<\/script>
+</body></html>`;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -130,8 +211,8 @@ export default function InvoicesList() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" className="gap-2 bg-white flex-1 sm:flex-none">
-              <Download className="w-4 h-4" />
+            <Button variant="outline" className="gap-2 bg-white flex-1 sm:flex-none" onClick={handlePrintList}>
+              <Printer className="w-4 h-4" />
               Exportar Lista
             </Button>
           </div>
