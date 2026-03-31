@@ -136,6 +136,7 @@ export async function registerRoutes(
     dueDate: z.string().optional().default(""),
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
     notes: z.string().optional().default(""),
+    applyIrpf: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional().default("true"),
     status: z.enum(["draft", "pending", "paid", "overdue"]).optional().default("pending"),
     items: z.array(z.object({
       serviceId: z.string().optional(),
@@ -165,6 +166,7 @@ export async function registerRoutes(
     dueDate: z.string().optional(),
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
     notes: z.string().optional(),
+    applyIrpf: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional(),
     status: z.enum(["draft", "pending", "paid", "overdue"]).optional(),
     items: z.array(z.object({
       serviceId: z.string().optional(),
