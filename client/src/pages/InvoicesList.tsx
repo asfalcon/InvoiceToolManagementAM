@@ -152,7 +152,7 @@ export default function InvoicesList() {
     const bankCodeHtml = company.bankCode
       ? `<p class="mt-1">Banco: ${company.bankCode}</p>` : '';
 
-    const pageBreakStyle = isLast ? '' : 'style="page-break-after:always;"';
+    const pageBreakStyle = isLast ? '' : 'style="page-break-after:always;break-after:page;"';
 
     return `
     <div ${pageBreakStyle}>
@@ -278,9 +278,10 @@ export default function InvoicesList() {
   @page { size:A4 portrait; margin:0; }
   body { background:#f1f5f9; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
   @media print {
-    body { background:#fff; padding:0; display:block; }
+    html, body { width:auto !important; height:auto !important; overflow:visible !important; }
+    body { background:#fff !important; padding:0 !important; display:block !important; }
     body > * { display:block !important; }
-    .invoice-print-root { position:static !important; height:auto !important; overflow:visible !important; }
+    .invoice-print-root { position:static !important; width:auto !important; height:auto !important; overflow:visible !important; }
   }
 </style>
 </head>
