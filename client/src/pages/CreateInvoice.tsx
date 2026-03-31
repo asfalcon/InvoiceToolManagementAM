@@ -85,10 +85,11 @@ export default function CreateInvoice() {
     ? rawBreakdown
     : { ...rawBreakdown, irpf: 0, total: Math.ceil((subtotal - discount) * 100) / 100 };
 
-  // Generate next invoice number based on YY1YYY format
-  // YY = last two digits of current year, YYY = progressive number starting at 001
+  // Número de factura: YY1XXX donde YY = año actual (2 dígitos), XXX = correlativo del año
   const currentYear = new Date().getFullYear().toString().slice(-2);
-  const nextInvoiceNumber = `${currentYear}1${String(invoices.length + 1).padStart(3, '0')}`;
+  const yearPrefix = `${currentYear}1`;
+  const yearCount = invoices.filter(inv => inv.number.startsWith(yearPrefix)).length;
+  const nextInvoiceNumber = `${yearPrefix}${String(yearCount + 1).padStart(3, '0')}`;
 
   const handleSave = () => {
     if (!selectedClientId) {

@@ -1,30 +1,30 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { FileText, Clock, CheckCircle2, FileEdit } from "lucide-react";
+import { FileText, Clock, CheckCircle2, FileEdit, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
 
+const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
 export default function Dashboard() {
   const { invoices } = useSettings();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
-  // Calcular totales
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
     const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
     const rawBreakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
-    if (applyIrpfFlag) {
-      return rawBreakdown.total;
-    } else {
-      return Math.ceil((subtotal - parseFloat(invoice.discount || 0)) * 100) / 100;
-    }
+    if (applyIrpfFlag) return rawBreakdown.total;
+    return Math.ceil((subtotal - parseFloat(invoice.discount || 0)) * 100) / 100;
   };
 
   const totalSales = invoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
-  
   const paidInvoices = invoices.filter(i => i.status === 'paid');
   const pendingInvoices = invoices.filter(i => i.status === 'pending');
   const draftInvoices = invoices.filter(i => i.status === 'draft');
-
   const totalPaid = paidInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
   const totalPending = pendingInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
 
@@ -41,23 +41,22 @@ export default function Dashboard() {
     { name: "Borrador", value: draftInvoices.length, color: "#94a3b8" }
   ].filter(d => d.value > 0);
 
-  // Evolución de ventas de los últimos 6 meses
-  const monthlySales = Array(6).fill(0).map((_, i) => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - (5 - i));
-    return {
-      monthStr: d.toISOString().slice(0, 7), // YYYY-MM
-      name: d.toLocaleDateString('es-ES', { month: 'short' }),
-      total: 0
-    };
+  // Años disponibles: años con facturas + año actual
+  const yearsWithInvoices = [...new Set(invoices.map(inv => new Date(inv.date).getFullYear()))];
+  const availableYears = [...new Set([...yearsWithInvoices, currentYear])].sort((a, b) => b - a);
+
+  // Evolución mensual del año seleccionado (enero → diciembre)
+  const monthlySales = MONTH_NAMES.map((name, idx) => {
+    const monthStr = `${selectedYear}-${String(idx + 1).padStart(2, '0')}`;
+    return { name, monthStr, total: 0 };
   });
 
   invoices.forEach(inv => {
+    const invYear = new Date(inv.date).getFullYear();
+    if (invYear !== selectedYear) return;
     const month = inv.date.slice(0, 7);
     const m = monthlySales.find(ms => ms.monthStr === month);
-    if (m) {
-      m.total += getInvoiceTotal(inv);
-    }
+    if (m) m.total += getInvoiceTotal(inv);
   });
 
   return (
@@ -86,18 +85,58 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-none shadow-sm bg-white">
           <CardHeader>
-            <CardTitle>Evolución de Ventas</CardTitle>
-            <CardDescription>Facturación mensual del semestre actual</CardDescription>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <CardTitle>Evolución de Ventas</CardTitle>
+                <CardDescription>Facturación mensual de {selectedYear}</CardDescription>
+              </div>
+              {/* Selector de año */}
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-md"
+                  onClick={() => setSelectedYear(y => y - 1)}
+                  disabled={selectedYear <= Math.min(...availableYears, currentYear - 5)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex gap-1">
+                  {availableYears.slice(0, 4).reverse().map(year => (
+                    <button
+                      key={year}
+                      onClick={() => setSelectedYear(year)}
+                      className={`px-3 py-1 text-sm rounded-md font-medium transition-colors ${
+                        year === selectedYear
+                          ? 'bg-white shadow-sm text-slate-900'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-md"
+                  onClick={() => setSelectedYear(y => y + 1)}
+                  disabled={selectedYear >= currentYear}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlySales}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} style={{ textTransform: 'capitalize' }} />
-                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val} €`} />
-                <Tooltip 
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val} €`} width={70} />
+                <Tooltip
                   formatter={(value: number) => [formatCurrency(value), "Total"]}
-                  cursor={{fill: '#f8fafc'}}
+                  cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
