@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Search, Filter, MoreHorizontal, Users, FileText, Printer } from "lucide-react";
+import logo_adminp from "@assets/logo_adminp.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,137 +117,154 @@ export default function InvoicesList() {
 
     const emptyRows = Math.max(0, 3 - inv.items.length);
 
-    const itemRows = inv.items.map((it: any) => `
+    const itemRowsHtml = inv.items.map((it: any) => `
       <tr>
-        <td style="padding:10px 14px;border-right:2px solid #fff;text-align:left;color:#1e293b;font-weight:500;vertical-align:top;">${it.description}</td>
-        <td style="padding:10px 8px;border-right:2px solid #fff;color:#475569;vertical-align:top;text-align:center;">${it.quantity}</td>
-        <td style="padding:10px 8px;border-right:2px solid #fff;color:#475569;vertical-align:top;text-align:center;">${fmtEur(parseFloat(it.basePrice || 0))}</td>
-        <td style="padding:10px 8px;color:#1e293b;font-weight:700;vertical-align:top;text-align:center;">${fmtEur(it.quantity * parseFloat(it.basePrice || 0))}</td>
+        <td class="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">${it.description}</td>
+        <td class="py-3 px-2 border-r-2 border-white text-slate-700 align-top">${it.quantity}</td>
+        <td class="py-3 px-2 border-r-2 border-white text-slate-700 align-top">${fmtEur(parseFloat(it.basePrice || 0))}</td>
+        <td class="py-3 px-2 text-slate-800 font-bold align-top">${fmtEur(it.quantity * parseFloat(it.basePrice || 0))}</td>
       </tr>`).join('');
 
     const emptyRowsHtml = Array.from({ length: emptyRows }).map(() => `
       <tr>
-        <td style="padding:10px 14px;border-right:2px solid #fff;color:transparent;">.</td>
-        <td style="padding:10px 8px;border-right:2px solid #fff;color:transparent;">.</td>
-        <td style="padding:10px 8px;border-right:2px solid #fff;color:transparent;">.</td>
-        <td style="padding:10px 8px;color:transparent;">.</td>
+        <td class="py-3 px-4 border-r-2 border-white text-transparent">.</td>
+        <td class="py-3 px-2 border-r-2 border-white text-transparent">.</td>
+        <td class="py-3 px-2 border-r-2 border-white text-transparent">.</td>
+        <td class="py-3 px-2 text-transparent">.</td>
       </tr>`).join('');
 
-    const discountRow = discount > 0
-      ? `<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#475569;">
+    const discountRowHtml = discount > 0
+      ? `<div class="flex justify-between py-2 px-4 border-b border-slate-200">
            <span>Descuento</span><span>-${fmtEur(discount)}</span>
          </div>` : '';
 
-    const irpfRow = applyIrpf
-      ? `<div style="display:flex;justify-content:space-between;padding:7px 14px;font-size:12px;color:#334155;">
+    const irpfRowHtml = applyIrpf
+      ? `<div class="flex justify-between py-2 px-4 text-slate-800">
            <span>IRPF (15%)</span><span>-${fmtEur(breakdown.irpf)}</span>
          </div>` : '';
 
-    const bankCode = company.bankCode
-      ? `<p style="margin:2px 0;">Banco: ${company.bankCode}</p>` : '';
+    const notesHtml = inv.notes
+      ? `<div class="text-slate-600 mt-4">
+           <h4 class="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-2">Observaciones:</h4>
+           <p class="text-[12px] leading-relaxed italic">${inv.notes}</p>
+         </div>` : '';
 
-    const pageBreak = isLast ? '' : 'page-break-after:always;';
+    const bankCodeHtml = company.bankCode
+      ? `<p class="mt-1">Banco: ${company.bankCode}</p>` : '';
+
+    const pageBreakStyle = isLast ? '' : 'style="page-break-after:always;"';
 
     return `
-    <div style="${pageBreak}width:210mm;min-height:297mm;padding:28mm 22mm 18mm;box-sizing:border-box;display:flex;flex-direction:column;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1e293b;background:#fff;">
+    <div ${pageBreakStyle}>
+      <div class="bg-white text-slate-900 p-10 w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-col font-sans overflow-hidden">
 
-      <!-- Header -->
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
-        <div style="width:48%;">
-          <div style="font-size:22px;font-weight:800;color:#1e293b;letter-spacing:-0.5px;margin-bottom:4px;">Admin+</div>
-          <div style="font-size:10px;line-height:1.7;color:#475569;">
-            ${company.name}<br>
-            ${company.nif ? company.nif + '<br>' : ''}
-            ${company.address}<br>
-            ${company.zipCode} ${company.city}, ${company.province || company.country}<br>
-            ${company.email ? company.email + '<br>' : ''}
-            ${company.phone || ''}
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-5">
+          <div class="w-[48%]">
+            <img src="${logo_adminp}" alt="LogoAdmin" class="max-h-24 mb-2 object-contain" />
+            <div class="text-xs leading-relaxed text-slate-700 font-sans mt-2">
+              <span class="font-bold text-slate-900 text-[16px]">Admin+</span><br>
+              ${company.name}<br>
+              ${company.nif ? `${company.nif}<br>` : ''}
+              ${company.address}<br>
+              ${company.zipCode} ${company.city}, ${company.province || company.country}<br>
+              ${company.email ? `${company.email}<br>` : ''}
+              ${company.phone || ''}
+            </div>
+          </div>
+          <div class="w-[48%] text-right">
+            <div class="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-3">FACTURA</div>
+            <div class="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+            <div class="font-semibold text-sm text-slate-800 mb-3">
+              ${new Date(inv.date).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}
+            </div>
+            <div class="font-bold text-base text-slate-800 mb-1">${client.name}</div>
+            <div class="text-xs leading-relaxed text-slate-700 font-sans">
+              <span class="font-semibold">NIF:</span> ${client.nif}<br>
+              ${client.address}<br>
+              ${client.zipCode} ${client.city}, ${client.country}<br>
+              ${client.email ? `<span>${client.email}</span>` : ''}
+            </div>
           </div>
         </div>
-        <div style="width:48%;text-align:right;">
-          <div style="font-size:34px;font-weight:300;letter-spacing:0.18em;text-transform:uppercase;color:#1e293b;margin-bottom:10px;">FACTURA</div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;font-weight:600;margin-bottom:2px;">Fecha de Emisión:</div>
-          <div style="font-size:12px;font-weight:600;color:#334155;margin-bottom:10px;">
-            ${new Date(inv.date).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}
-          </div>
-          <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:3px;">${client.name}</div>
-          <div style="font-size:10px;line-height:1.7;color:#475569;">
-            <span style="font-weight:600;">NIF:</span> ${client.nif}<br>
-            ${client.address}<br>
-            ${client.zipCode} ${client.city}, ${client.country}<br>
-            ${client.email || ''}
+
+        <!-- Nº Factura -->
+        <div class="flex justify-start gap-12 mb-5 border-b border-t border-slate-200 py-3">
+          <div>
+            <div class="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
+            <div class="font-semibold text-sm text-slate-800">${inv.number}</div>
           </div>
         </div>
-      </div>
 
-      <!-- Nº Factura -->
-      <div style="display:flex;gap:40px;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:10px 0;margin-bottom:18px;">
-        <div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;font-weight:600;margin-bottom:2px;">Nº de Factura:</div>
-          <div style="font-size:13px;font-weight:600;color:#334155;">${inv.number}</div>
-        </div>
-      </div>
+        <!-- Items -->
+        <div class="mb-4 flex-grow">
+          <table class="w-full text-center border-collapse">
+            <thead>
+              <tr class="bg-[#C5B8A9] text-black uppercase text-[10px] tracking-widest font-bold">
+                <th class="py-2.5 px-4 border-r border-white text-left w-[55%]">Descripción</th>
+                <th class="py-2.5 px-2 border-r border-white w-[15%]">Cant.</th>
+                <th class="py-2.5 px-2 border-r border-white w-[15%]">Precio</th>
+                <th class="py-2.5 px-2 w-[15%]">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody class="text-sm font-sans">
+              ${itemRowsHtml}${emptyRowsHtml}
+            </tbody>
+          </table>
 
-      <!-- Items table -->
-      <div style="flex:1;">
-        <table style="width:100%;border-collapse:collapse;text-align:center;">
-          <thead>
-            <tr style="background:#C5B8A9;">
-              <th style="padding:9px 14px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;width:55%;border-right:2px solid #fff;">Descripción</th>
-              <th style="padding:9px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;width:15%;border-right:2px solid #fff;">Cant.</th>
-              <th style="padding:9px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;width:15%;border-right:2px solid #fff;">Precio</th>
-              <th style="padding:9px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;width:15%;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody style="font-size:12px;">
-            ${itemRows}${emptyRowsHtml}
-          </tbody>
-        </table>
-
-        <!-- Totals -->
-        <div style="display:flex;margin-top:0;">
-          <div style="width:55%;padding:14px 14px 0 0;">
-            ${inv.notes ? `<div style="color:#475569;margin-top:10px;">
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;margin-bottom:6px;">Observaciones:</div>
-              <p style="font-size:11px;line-height:1.6;font-style:italic;">${inv.notes}</p>
-            </div>` : ''}
-          </div>
-          <div style="width:45%;">
-            <div style="font-size:13px;color:#475569;">
-              <div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #e2e8f0;">
-                <span>Subtotal</span><span>${fmtEur(breakdown.subtotal)}</span>
+          <!-- Totals -->
+          <div class="flex">
+            <div class="w-[55%] pt-4 pr-4">
+              ${notesHtml}
+            </div>
+            <div class="w-[45%]">
+              <div class="text-[13px] text-slate-600">
+                <div class="flex justify-between py-2 px-4 border-b border-slate-200">
+                  <span>Subtotal</span><span>${fmtEur(breakdown.subtotal)}</span>
+                </div>
+                ${discountRowHtml}
+                ${irpfRowHtml}
               </div>
-              ${discountRow}
-              ${irpfRow}
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-weight:700;background:#A3988B;color:#fff;">
-              <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.15em;">Total</span>
-              <span style="font-size:16px;">${fmtEur(breakdown.total)}</span>
+              <div class="text-white flex justify-between items-center py-3 px-4 font-bold bg-[#A3988B]">
+                <span class="uppercase tracking-widest text-xs">Total</span>
+                <span class="text-lg">${fmtEur(breakdown.total)}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Footer -->
-      <div style="margin-top:auto;padding-top:14px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-          <div>
-            <div style="font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Información de Pago</div>
-            <p style="margin:2px 0;color:#1e293b;">Método: Transferencia Bancaria</p>
-            <p style="margin:2px 0;color:#334155;">IBAN: ${company.bankAccount}</p>
-            ${bankCode}
-          </div>
-          <div>
-            <div style="font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Información Legal</div>
-            <p style="font-size:8px;color:#1e293b;text-align:justify;line-height:1.5;">${company.legalNotes}</p>
+        <!-- Footer -->
+        <div class="mt-auto pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
+          <div class="grid grid-cols-2 gap-8">
+            <div>
+              <h4 class="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
+              <p class="mb-1 text-[#1d293d]">Método: Transferencia Bancaria</p>
+              <p class="text-slate-800 mt-1 font-normal">IBAN: ${company.bankAccount}</p>
+              ${bankCodeHtml}
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
+              <p class="text-justify text-[9px] text-[#1d293d]">${company.legalNotes}</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>`;
   };
 
   const handlePrintSelected = () => {
     if (selectedInvoices.length === 0) return;
+
+    // Extraer todo el CSS compilado del documento actual (incluye Tailwind)
+    const allStyles = Array.from(document.styleSheets).reduce((css, sheet) => {
+      try {
+        return css + Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
+      } catch {
+        return css;
+      }
+    }, '');
+
     const pages = selectedInvoices
       .map((inv, idx) => buildInvoicePage(inv, idx === selectedInvoices.length - 1))
       .join('');
@@ -255,12 +273,17 @@ export default function InvoicesList() {
 <html lang="es"><head><meta charset="utf-8">
 <title>Facturas_${selectedInvoices.map(i => i.number).join('_')}</title>
 <style>
-  * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; margin:0; padding:0; }
+  ${allStyles}
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
   @page { size:A4 portrait; margin:0; }
-  body { background:#fff; }
-  @media screen { body { padding: 20px; background: #f1f5f9; } }
-  @media screen { div[style*="page-break-after"] { box-shadow: 0 4px 24px rgba(0,0,0,0.12); margin-bottom: 24px; } }
-</style></head>
+  body { background:#f1f5f9; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
+  @media print {
+    body { background:#fff; padding:0; display:block; }
+    body > * { display:block !important; }
+    .invoice-print-root { position:static !important; height:auto !important; overflow:visible !important; }
+  }
+</style>
+</head>
 <body>
   ${pages}
   <script>window.onload = function(){ window.print(); setTimeout(function(){ window.close(); }, 500); }<\/script>
