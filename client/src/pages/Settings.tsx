@@ -128,23 +128,23 @@ export default function Settings() {
 
       <Tabs defaultValue="company1" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="company1">Empresa 1</TabsTrigger>
-          <TabsTrigger value="company2">Empresa 2</TabsTrigger>
+          <TabsTrigger value="company1">Miguel Santiago</TabsTrigger>
+          <TabsTrigger value="company2">Antonio Pérez</TabsTrigger>
           <TabsTrigger value="theme">Tema</TabsTrigger>
         </TabsList>
 
         <TabsContent value="company1" className="space-y-6">
           <div className="pt-2 px-1">
-            <h2 className="text-lg font-semibold">Datos de la Empresa 1</h2>
-            <p className="text-sm text-muted-foreground">Información principal de la primera empresa emisora de facturas.</p>
+            <h2 className="text-lg font-semibold">Datos de Miguel Santiago</h2>
+            <p className="text-sm text-muted-foreground">Información de la empresa emisora Miguel Santiago.</p>
           </div>
           <CompanyForm initialData={company} onSave={saveCompany} />
         </TabsContent>
 
         <TabsContent value="company2" className="space-y-6">
           <div className="pt-2 px-1">
-            <h2 className="text-lg font-semibold">Datos de la Empresa 2</h2>
-            <p className="text-sm text-muted-foreground">Información de la segunda empresa emisora de facturas.</p>
+            <h2 className="text-lg font-semibold">Datos de Antonio Pérez</h2>
+            <p className="text-sm text-muted-foreground">Información de la empresa emisora Antonio Pérez.</p>
           </div>
           <CompanyForm initialData={company2} onSave={saveCompany2} />
         </TabsContent>

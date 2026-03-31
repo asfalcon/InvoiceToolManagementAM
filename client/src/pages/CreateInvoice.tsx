@@ -208,8 +208,8 @@ export default function CreateInvoice() {
                     <SelectValue placeholder="Selecciona empresa..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Empresa 1</SelectItem>
-                    <SelectItem value="2">Empresa 2</SelectItem>
+                    <SelectItem value="1">Miguel Santiago</SelectItem>
+                    <SelectItem value="2">Antonio Pérez</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

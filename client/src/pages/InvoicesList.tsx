@@ -53,7 +53,7 @@ export default function InvoicesList() {
     (invoice.companyId === 2) ? company2 : company;
 
   const getCompanyLabel = (invoice: any) =>
-    (invoice.companyId === 2) ? "Empresa 2" : "Empresa 1";
+    (invoice.companyId === 2) ? "Antonio Pérez" : "Miguel Santiago";
 
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
