@@ -14,6 +14,8 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, toNum } from "@/lib/taxCalculations";
 import { useRef } from "react";
 
+import logo_adminp from "@assets/logo_adminp.png";
+
 export default function ExportInvoice() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
@@ -119,7 +121,7 @@ export default function ExportInvoice() {
               {/* Top Left: Company */}
               <div className="w-[48%]">
                 <img
-                  src="/logo-admin.png"
+                  src={logo_adminp}
                   alt="LogoAdmin"
                   className="max-h-24 mb-2 object-contain"
                 />
