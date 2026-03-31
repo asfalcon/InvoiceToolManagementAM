@@ -42,6 +42,7 @@ export type Invoice = {
   items: InvoiceItem[];
   discount: string | number;
   notes: string;
+  applyIrpf?: string | boolean;
   status: "draft" | "pending" | "paid" | "overdue";
 };
 

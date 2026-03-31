@@ -42,8 +42,13 @@ export default function InvoicesList() {
 
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
-    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
-    return breakdown.total;
+    const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
+    const rawBreakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
+    if (applyIrpfFlag) {
+      return rawBreakdown.total;
+    } else {
+      return Math.ceil((subtotal - parseFloat(invoice.discount || 0)) * 100) / 100;
+    }
   };
 
   const filteredInvoices = invoices.filter(inv => {

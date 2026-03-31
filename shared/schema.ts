@@ -48,6 +48,7 @@ export const invoices = pgTable("invoices", {
   dueDate: text("due_date").notNull().default(""),
   discount: numeric("discount", { precision: 12, scale: 2 }).notNull().default("0"),
   notes: text("notes").notNull().default(""),
+  applyIrpf: text("apply_irpf").notNull().default("true"),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });

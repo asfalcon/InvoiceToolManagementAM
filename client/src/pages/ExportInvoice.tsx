@@ -43,7 +43,11 @@ export default function ExportInvoice() {
     (sum, item) => sum + item.quantity * toNum(item.basePrice),
     0,
   );
-  const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
+  const applyIrpfFlag = invoice.applyIrpf === false || invoice.applyIrpf === "false" ? false : true;
+  const rawBreakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
+  const breakdown = applyIrpfFlag
+    ? rawBreakdown
+    : { ...rawBreakdown, irpf: 0, total: Math.ceil((subtotal - toNum(invoice.discount)) * 100) / 100 };
 
   const handlePrint = () => {
     if (!invoiceRef.current) return;

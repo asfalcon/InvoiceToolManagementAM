@@ -106,6 +106,7 @@ export default function CreateInvoice() {
         items,
         discount,
         notes,
+        applyIrpf: String(applyIrpf),
         status: "pending" as const,
       }, {
         onSuccess: () => {
@@ -123,6 +124,7 @@ export default function CreateInvoice() {
         items,
         discount,
         notes,
+        applyIrpf: String(applyIrpf),
         status: "pending" as const,
       };
       addInvoice(newInvoice, {
@@ -150,6 +152,7 @@ export default function CreateInvoice() {
         items,
         discount,
         notes,
+        applyIrpf: String(applyIrpf),
         status: "draft" as const,
       }, {
         onSuccess: () => { toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` }); setLocation("/"); },
@@ -164,6 +167,7 @@ export default function CreateInvoice() {
         items,
         discount,
         notes,
+        applyIrpf: String(applyIrpf),
         status: "draft" as const,
       };
       addInvoice(newInvoice, {
