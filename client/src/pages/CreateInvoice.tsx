@@ -73,11 +73,12 @@ export default function CreateInvoice() {
   const subtotal = calculateSubtotal();
   const breakdown = calculateTaxBreakdown(subtotal, discount);
 
-  // Número de factura: YY{companyId}XXX
+  // Número de factura: YYXXXX — secuencia independiente por empresa
   const currentYear = new Date().getFullYear().toString().slice(-2);
-  const yearPrefix = `${currentYear}${selectedCompanyId}`;
-  const yearCount = invoices.filter(inv => inv.number.startsWith(yearPrefix)).length;
-  const nextInvoiceNumber = `${yearPrefix}${String(yearCount + 1).padStart(3, '0')}`;
+  const companyYearCount = invoices.filter(
+    inv => inv.companyId === selectedCompanyId && inv.number.startsWith(currentYear)
+  ).length;
+  const nextInvoiceNumber = `${currentYear}${String(companyYearCount + 1001).padStart(4, '0')}`;
 
   const handleSave = () => {
     if (!selectedClientId) {
