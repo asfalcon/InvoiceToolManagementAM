@@ -145,7 +145,7 @@ export default function InvoicesList() {
 
     const itemRowsHtml = inv.items.map((it: any) => `
       <tr>
-        <td class="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">${it.description}</td>
+        <td class="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium" style="white-space:pre-wrap;">${it.description}</td>
         <td class="py-3 px-2 border-r-2 border-white text-slate-700 align-top">${it.quantity}</td>
         <td class="py-3 px-2 border-r-2 border-white text-slate-700 align-top">${fmtEur(parseFloat(it.basePrice || 0))}</td>
         <td class="py-3 px-2 text-slate-800 font-bold align-top">${fmtEur(it.quantity * parseFloat(it.basePrice || 0))}</td>

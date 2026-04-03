@@ -218,7 +218,7 @@ export default function ExportInvoice() {
                   {invoice.items.map((item, idx) => (
                     <tr key={idx}>
                       <td className="py-3 px-4 border-r-2 border-white text-left text-slate-800 align-top font-medium">
-                        {item.description}
+                        <span className="whitespace-pre-wrap">{item.description}</span>
                       </td>
                       <td className="py-3 px-2 border-r-2 border-white text-slate-700 align-top">
                         {item.quantity}

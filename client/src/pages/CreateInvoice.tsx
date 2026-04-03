@@ -223,7 +223,7 @@ export default function CreateInvoice() {
                   <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Busca un cliente..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-64 overflow-y-auto">
                     {clients.map(c => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
@@ -254,7 +254,7 @@ export default function CreateInvoice() {
                       <SelectTrigger className="bg-gray-50 text-sm">
                         <SelectValue placeholder="Elegir servicio..." />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-48 overflow-y-auto">
                         {services.map(s => (
                           <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                         ))}
