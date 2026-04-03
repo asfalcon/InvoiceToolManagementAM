@@ -263,7 +263,7 @@ export default function ExportInvoice() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Factura&nbsp;&nbsp;{invoice.number}
+                  Factura
                 </span>
               </div>
 
@@ -288,8 +288,14 @@ export default function ExportInvoice() {
                   <img src={Logo_AM} alt="Logo" style={{ maxHeight: "72px", objectFit: "contain" }} />
                 </div>
 
-                {/* Separador */}
-                <div style={{ borderBottom: "2px solid #1e3a5f", marginBottom: "14px" }} />
+                {/* Separador con número de factura */}
+                <div style={{ display: "flex", alignItems: "center", marginBottom: "14px", gap: "12px" }}>
+                  <div style={{ flex: 1, borderBottom: "2px solid #1e3a5f" }} />
+                  <div style={{ color: "#1e3a5f", fontWeight: 700, fontSize: "13px", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
+                    {invoice.number}
+                  </div>
+                  <div style={{ flex: 1, borderBottom: "2px solid #1e3a5f" }} />
+                </div>
 
                 {/* ── Sección cliente + meta ── */}
                 <div className="flex justify-between mb-5" style={{ gap: "24px" }}>
