@@ -264,7 +264,6 @@ export default function ExportInvoice() {
                       {invCompany.phone && <span>{invCompany.phone}</span>}
                     </div>
                   </div>
-                  <img src={Logo_AM} alt="Logo" style={{ maxHeight: "72px", objectFit: "contain" }} />
                 </div>
 
                 {/* Separador y número de factura debajo */}
