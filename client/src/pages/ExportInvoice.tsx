@@ -249,7 +249,7 @@ export default function ExportInvoice() {
               {/* Banda lateral izquierda con texto vertical */}
               <div
                 className="flex-shrink-0 flex items-center justify-center"
-                style={{ width: "36px", background: "#1e3a5f" }}
+                style={{ width: "36px", background: "#8B1A1A" }}
               >
                 <span
                   style={{
@@ -273,7 +273,7 @@ export default function ExportInvoice() {
                 {/* ── Cabecera: empresa + logo ── */}
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <div style={{ color: "#1e3a5f", fontSize: "18px", fontWeight: 700, marginBottom: "4px" }}>
+                    <div style={{ color: "#8B1A1A", fontSize: "18px", fontWeight: 700, marginBottom: "4px" }}>
                       {invCompany.name}
                     </div>
                     <div className="text-[10px] text-slate-600 leading-relaxed">
@@ -288,25 +288,24 @@ export default function ExportInvoice() {
                   <img src={Logo_AM} alt="Logo" style={{ maxHeight: "72px", objectFit: "contain" }} />
                 </div>
 
-                {/* Separador con número de factura */}
-                <div style={{ display: "flex", alignItems: "center", marginBottom: "14px", gap: "12px" }}>
-                  <div style={{ flex: 1, borderBottom: "2px solid #1e3a5f" }} />
-                  <div style={{ color: "#1e3a5f", fontWeight: 700, fontSize: "13px", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
+                {/* Separador y número de factura debajo */}
+                <div style={{ marginBottom: "14px" }}>
+                  <div style={{ borderBottom: "2px solid #8B1A1A" }} />
+                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "13px", letterSpacing: "0.12em", marginTop: "6px" }}>
                     {invoice.number}
                   </div>
-                  <div style={{ flex: 1, borderBottom: "2px solid #1e3a5f" }} />
                 </div>
 
                 {/* ── Sección cliente + meta ── */}
                 <div className="flex justify-between mb-5" style={{ gap: "24px" }}>
                   {/* Facturar a */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ color: "#1e3a5f", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
+                    <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
                       Facturar a
                     </div>
                     <div className="text-[10px] text-slate-700 leading-relaxed">
                       <span style={{ fontWeight: 700, fontSize: "11px", color: "#1a1a2e" }}>{client.name}</span><br />
-                      <span style={{ color: "#1e3a5f", fontWeight: 600 }}>NIF:</span> {client.nif}<br />
+                      <span style={{ color: "#8B1A1A", fontWeight: 600 }}>NIF:</span> {client.nif}<br />
                       {client.address}<br />
                       {client.zipCode} {client.city}, {client.country}<br />
                       {client.email && <span>{client.email}</span>}
@@ -318,11 +317,11 @@ export default function ExportInvoice() {
                     <table style={{ marginLeft: "auto", fontSize: "10px", borderCollapse: "collapse" }}>
                       <tbody>
                         <tr>
-                          <td style={{ color: "#1e3a5f", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px", whiteSpace: "nowrap" }}>Nº de Factura</td>
+                          <td style={{ color: "#8B1A1A", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px", whiteSpace: "nowrap" }}>Nº de Factura</td>
                           <td style={{ fontWeight: 600, color: "#1a1a2e", paddingBottom: "4px" }}>{invoice.number}</td>
                         </tr>
                         <tr>
-                          <td style={{ color: "#1e3a5f", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px" }}>Fecha</td>
+                          <td style={{ color: "#8B1A1A", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px" }}>Fecha</td>
                           <td style={{ paddingBottom: "4px" }}>
                             {invoice.date
                               ? new Date(invoice.date).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -331,7 +330,7 @@ export default function ExportInvoice() {
                         </tr>
                         {invoice.dueDate && (
                           <tr>
-                            <td style={{ color: "#1e3a5f", fontWeight: 700, paddingRight: "12px" }}>Vencimiento</td>
+                            <td style={{ color: "#8B1A1A", fontWeight: 700, paddingRight: "12px" }}>Vencimiento</td>
                             <td>{new Date(invoice.dueDate).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}</td>
                           </tr>
                         )}
@@ -344,7 +343,7 @@ export default function ExportInvoice() {
                 <div style={{ flex: 1 }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                     <thead>
-                      <tr style={{ background: "#1e3a5f", color: "#ffffff" }}>
+                      <tr style={{ background: "#8B1A1A", color: "#ffffff" }}>
                         <th style={{ padding: "7px 10px", textAlign: "left", fontWeight: 700, letterSpacing: "0.06em", width: "10%" }}>Cant.</th>
                         <th style={{ padding: "7px 10px", textAlign: "left", fontWeight: 700, letterSpacing: "0.06em", width: "50%" }}>Descripción</th>
                         <th style={{ padding: "7px 10px", textAlign: "right", fontWeight: 700, letterSpacing: "0.06em", width: "20%" }}>Precio unitario</th>
@@ -374,7 +373,7 @@ export default function ExportInvoice() {
                   {/* Observaciones */}
                   {invoice.notes && (
                     <div style={{ marginTop: "12px", fontSize: "10px", color: "#64748b" }}>
-                      <span style={{ fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em" }}>Observaciones: </span>
+                      <span style={{ fontWeight: 700, color: "#8B1A1A", textTransform: "uppercase", letterSpacing: "0.08em" }}>Observaciones: </span>
                       <span style={{ fontStyle: "italic", whiteSpace: "pre-wrap" }}>{invoice.notes}</span>
                     </div>
                   )}
@@ -398,8 +397,8 @@ export default function ExportInvoice() {
                           <td style={{ padding: "4px 0 8px 0", textAlign: "right", color: "#374151" }}>+{formatEuros(breakdown.igic)}</td>
                         </tr>
                         <tr>
-                          <td style={{ padding: "10px 16px 4px 0", fontWeight: 700, fontSize: "15px", color: "#1e3a5f" }}>Total</td>
-                          <td style={{ padding: "10px 0 4px 0", textAlign: "right", fontWeight: 700, fontSize: "15px", color: "#1e3a5f" }}>{formatEuros(breakdown.total)}</td>
+                          <td style={{ padding: "10px 16px 4px 0", fontWeight: 700, fontSize: "15px", color: "#8B1A1A" }}>Total</td>
+                          <td style={{ padding: "10px 0 4px 0", textAlign: "right", fontWeight: 700, fontSize: "15px", color: "#8B1A1A" }}>{formatEuros(breakdown.total)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -408,8 +407,8 @@ export default function ExportInvoice() {
 
                 {/* ── Pie de página ── */}
                 <div style={{ marginTop: "auto", paddingTop: "16px" }}>
-                  <div style={{ borderTop: "2px solid #1e3a5f", marginBottom: "10px" }} />
-                  <div style={{ color: "#1e3a5f", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  <div style={{ borderTop: "2px solid #8B1A1A", marginBottom: "10px" }} />
+                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
                     Condiciones y forma de pago
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", fontSize: "9px", color: "#374151" }}>
