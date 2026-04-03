@@ -244,29 +244,8 @@ export default function ExportInvoice() {
           {isCompany2 && (
             <div
               ref={invoiceRef}
-              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-row"
+              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-col"
             >
-              {/* Banda lateral izquierda con texto vertical */}
-              <div
-                className="flex-shrink-0 flex items-center justify-center"
-                style={{ width: "36px", background: "#8B1A1A" }}
-              >
-                <span
-                  style={{
-                    writingMode: "vertical-rl",
-                    transform: "rotate(180deg)",
-                    color: "#ffffff",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Factura
-                </span>
-              </div>
-
               {/* Contenido principal */}
               <div className="flex flex-col flex-1 p-8" style={{ minHeight: "297mm" }}>
 
@@ -291,8 +270,8 @@ export default function ExportInvoice() {
                 {/* Separador y número de factura debajo */}
                 <div style={{ marginBottom: "14px" }}>
                   <div style={{ borderBottom: "2px solid #8B1A1A" }} />
-                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "13px", letterSpacing: "0.12em", marginTop: "6px" }}>
-                    {invoice.number}
+                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "13px", letterSpacing: "0.08em", marginTop: "6px" }}>
+                    Factura n.º:&nbsp;{invoice.number}
                   </div>
                 </div>
 
