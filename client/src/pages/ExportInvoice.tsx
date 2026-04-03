@@ -270,9 +270,10 @@ export default function ExportInvoice() {
                 {/* Separador y número de factura debajo */}
                 <div style={{ marginBottom: "14px" }}>
                   <div style={{ borderBottom: "2px solid #8B1A1A" }} />
-                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "13px", letterSpacing: "0.08em", marginTop: "6px" }}>
+                  <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "13px", letterSpacing: "0.08em", marginTop: "6px", marginBottom: "6px" }}>
                     Factura n.º:&nbsp;{invoice.number}
                   </div>
+                  <div style={{ borderBottom: "2px solid #8B1A1A" }} />
                 </div>
 
                 {/* ── Sección cliente + meta ── */}
