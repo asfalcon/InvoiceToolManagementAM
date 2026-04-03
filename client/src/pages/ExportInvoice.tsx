@@ -45,9 +45,9 @@ export default function ExportInvoice() {
     );
   }
 
-  const roundUp = (num: number) => Math.ceil(num * 100) / 100;
+  const round2 = (num: number) => Math.round(num * 100) / 100;
   const formatEuros = (num: number) =>
-    `${roundUp(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+    `${round2(num).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
   const subtotal = invoice.items.reduce(
     (sum, item) => sum + item.quantity * toNum(item.basePrice),

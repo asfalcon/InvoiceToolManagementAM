@@ -128,9 +128,9 @@ export default function InvoicesList() {
   const selectedInvoices = invoices.filter(inv => selectedIds.has(inv.id));
 
   // ─── Helpers de formato para HTML ───────────────────────────────────────────
-  const roundUp = (n: number) => Math.ceil(n * 100) / 100;
+  const round2 = (n: number) => Math.round(n * 100) / 100;
   const fmtEur = (n: number) =>
-    `${roundUp(n).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+    `${round2(n).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
   const buildInvoicePage = (inv: any, isLast: boolean): string => {
     const client = getClient(inv.clientId);
