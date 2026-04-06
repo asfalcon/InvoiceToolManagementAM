@@ -109,7 +109,6 @@ export default function ExportInvoice() {
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 overflow-auto flex justify-center bg-gray-100 p-8 rounded-xl print:bg-white print:p-0">
 
@@ -282,7 +281,7 @@ export default function ExportInvoice() {
                     <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
                       Facturar a
                     </div>
-                    <div className="text-[10px] text-slate-700 leading-relaxed">
+                    <div className="text-slate-700 text-[11px]">
                       <span style={{ fontWeight: 700, fontSize: "11px", color: "#1a1a2e" }}>{client.name}</span><br />
                       <span style={{ color: "#8B1A1A", fontWeight: 600 }}>NIF:</span> {client.nif}<br />
                       {client.address}<br />
@@ -295,10 +294,6 @@ export default function ExportInvoice() {
                   <div style={{ minWidth: "160px", textAlign: "right" }}>
                     <table style={{ marginLeft: "auto", fontSize: "10px", borderCollapse: "collapse" }}>
                       <tbody>
-                        <tr>
-                          <td style={{ color: "#8B1A1A", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px", whiteSpace: "nowrap" }}>Nº de Factura</td>
-                          <td style={{ fontWeight: 600, color: "#1a1a2e", paddingBottom: "4px" }}>{invoice.number}</td>
-                        </tr>
                         <tr>
                           <td style={{ color: "#8B1A1A", fontWeight: 700, paddingRight: "12px", paddingBottom: "4px" }}>Fecha</td>
                           <td style={{ paddingBottom: "4px" }}>
