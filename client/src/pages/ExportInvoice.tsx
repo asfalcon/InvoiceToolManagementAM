@@ -278,7 +278,9 @@ export default function ExportInvoice() {
                 <div className="flex justify-between mb-5" style={{ gap: "24px" }}>
                   {/* Facturar a */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
+                    <div
+                      style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}
+                      className="text-[11px]">
                       Facturar a
                     </div>
                     <div className="text-slate-700 text-[11px]">
