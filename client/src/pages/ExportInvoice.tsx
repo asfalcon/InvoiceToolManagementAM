@@ -281,9 +281,9 @@ export default function ExportInvoice() {
                     <div
                       style={{ color: "#8B1A1A", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}
                       className="text-[11px]">
-                      Facturar a
+                      Facturar:
                     </div>
-                    <div className="text-slate-700 text-[11px]">
+                    <div className="text-slate-700 text-[10px]">
                       <span style={{ fontWeight: 700, fontSize: "11px", color: "#1a1a2e" }}>{client.name}</span><br />
                       <span style={{ color: "#8B1A1A", fontWeight: 600 }}>NIF:</span> {client.nif}<br />
                       {client.address}<br />
