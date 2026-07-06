@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,14 +74,14 @@ export default function CreateInvoice() {
   const subtotal = calculateSubtotal();
   const breakdown = calculateTaxBreakdown(subtotal, discount, false);
 
-  // Número de factura: YY1XXX (Miguel Santiago) / YY2XXX (Antonio Pérez)
-  const currentYear = new Date().getFullYear().toString().slice(-2);
-  const companyBase = selectedCompanyId === 2 ? 2000 : 1000;
-  const companyPrefix = `${currentYear}${selectedCompanyId === 2 ? '2' : '1'}`;
-  const companyYearCount = invoices.filter(
-    inv => inv.companyId === selectedCompanyId && inv.number.startsWith(companyPrefix)
-  ).length;
-  const nextInvoiceNumber = `${currentYear}${String(companyYearCount + companyBase + 1).padStart(4, '0')}`;
+  // Número de factura: obtenido del backend para garantizar unicidad
+  const { data: nextNumberData } = useQuery<{ number: string }>({
+    queryKey: ["/api/invoices/next-number", selectedCompanyId],
+    queryFn: () => fetch(`/api/invoices/next-number/${selectedCompanyId}`).then(r => r.json()),
+    staleTime: 0,
+    enabled: !isEditing,
+  });
+  const nextInvoiceNumber = isEditing ? (draftInvoice?.number ?? "") : (nextNumberData?.number ?? "...");
 
   const handleSave = () => {
     if (!selectedClientId) {

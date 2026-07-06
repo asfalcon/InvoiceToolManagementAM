@@ -110,6 +110,17 @@ export async function registerRoutes(
   });
 
   // --- INVOICES ---
+  app.get("/api/invoices/next-number/:companyId", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      if (isNaN(companyId) || companyId < 1 || companyId > 2) return res.status(400).json({ message: "ID de empresa inválido" });
+      const number = await storage.getNextInvoiceNumber(companyId);
+      res.json({ number });
+    } catch (err) {
+      serverError(res, "Error al calcular número de factura", err);
+    }
+  });
+
   app.get("/api/invoices", async (_req, res) => {
     try {
       const data = await storage.getInvoices();
@@ -138,6 +149,7 @@ export async function registerRoutes(
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
     notes: z.string().optional().default(""),
     applyIrpf: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional().default("true"),
+    applyIgic: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional().default("false"),
     status: z.enum(["draft", "pending", "paid", "overdue"]).optional().default("pending"),
     items: z.array(z.object({
       serviceId: z.string().optional(),
@@ -169,6 +181,7 @@ export async function registerRoutes(
     discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
     notes: z.string().optional(),
     applyIrpf: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional(),
+    applyIgic: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional(),
     status: z.enum(["draft", "pending", "paid", "overdue"]).optional(),
     items: z.array(z.object({
       serviceId: z.string().optional(),

@@ -259,6 +259,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       dueDate: invoice.dueDate || "", discount: String(invoice.discount || 0),
       notes: invoice.notes || "", status: invoice.status || "pending",
       applyIrpf: "true",
+      applyIgic: (invoice as any).applyIgic ?? "false",
       items: invoice.items.map(item => ({
         serviceId: item.serviceId,
         description: item.description,

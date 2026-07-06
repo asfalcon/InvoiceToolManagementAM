@@ -8,7 +8,7 @@ import {
   type CompanySettings, type InsertCompanySettings,
   type ThemeSettings, type InsertThemeSettings,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, like, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Clients
@@ -28,6 +28,7 @@ export interface IStorage {
   // Invoices
   getInvoices(): Promise<(Invoice & { items: InvoiceItem[] })[]>;
   getInvoice(id: string): Promise<(Invoice & { items: InvoiceItem[] }) | undefined>;
+  getNextInvoiceNumber(companyId: number): Promise<string>;
   createInvoice(data: InsertInvoice, items: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<Invoice & { items: InvoiceItem[] }>;
   updateInvoice(id: string, data: Partial<InsertInvoice>, itemsData?: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<(Invoice & { items: InvoiceItem[] }) | undefined>;
   deleteInvoice(id: string): Promise<void>;
@@ -105,6 +106,27 @@ export class DatabaseStorage implements IStorage {
     if (!invoice) return undefined;
     const items = await db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id));
     return { ...invoice, items };
+  }
+
+  async getNextInvoiceNumber(companyId: number): Promise<string> {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const companyDigit = companyId === 2 ? "2" : "1";
+    const prefix = `${year}${companyDigit}`;
+    const base = companyId === 2 ? 2000 : 1000;
+
+    const rows = await db
+      .select({ number: invoices.number })
+      .from(invoices)
+      .where(like(invoices.number, `${prefix}%`))
+      .orderBy(desc(invoices.number))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return `${year}${String(base + 1).padStart(4, "0")}`;
+    }
+
+    const lastNum = parseInt(rows[0].number.slice(2), 10);
+    return `${year}${String(lastNum + 1).padStart(4, "0")}`;
   }
 
   async createInvoice(data: InsertInvoice, itemsData: Omit<InsertInvoiceItem, "invoiceId">[]): Promise<Invoice & { items: InvoiceItem[] }> {
