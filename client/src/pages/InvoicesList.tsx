@@ -57,7 +57,8 @@ export default function InvoicesList() {
 
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
-    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
+    const igicActive = invoice.applyIgic !== "false" && invoice.applyIgic !== false;
+    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0), igicActive);
     return breakdown.total;
   };
 
@@ -139,7 +140,8 @@ export default function InvoicesList() {
     const invCompany = getCompanyForInvoice(inv);
     const subtotal = inv.items.reduce((s: number, it: any) => s + it.quantity * parseFloat(it.basePrice || 0), 0);
     const discount = parseFloat(inv.discount || 0);
-    const breakdown = calculateTaxBreakdown(subtotal, discount);
+    const igicActive = inv.applyIgic !== "false" && inv.applyIgic !== false;
+    const breakdown = calculateTaxBreakdown(subtotal, discount, igicActive);
 
     const emptyRows = Math.max(0, 3 - inv.items.length);
 
@@ -164,9 +166,9 @@ export default function InvoicesList() {
            <span>Descuento</span><span>-${fmtEur(discount)}</span>
          </div>` : '';
 
-    const igicRowHtml = `<div class="flex justify-between py-2 px-4 text-slate-800">
+    const igicRowHtml = igicActive ? `<div class="flex justify-between py-2 px-4 text-slate-800">
            <span>IGIC (7%)</span><span>+${fmtEur(breakdown.igic)}</span>
-         </div>`;
+         </div>` : '';
 
     const notesHtml = inv.notes
       ? `<div class="text-slate-600 mt-4">

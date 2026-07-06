@@ -5,9 +5,9 @@ export function toNum(value: string | number | undefined | null): number {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export function calculateTaxBreakdown(subtotal: number, discount: number = 0) {
+export function calculateTaxBreakdown(subtotal: number, discount: number = 0, applyIgic: boolean = true) {
   const base = round2(subtotal);
-  const igic = round2(base * 0.07);
+  const igic = applyIgic ? round2(base * 0.07) : 0;
   const finalDiscount = round2(discount);
   const total = round2(base + igic - finalDiscount);
 

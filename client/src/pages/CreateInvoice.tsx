@@ -71,7 +71,7 @@ export default function CreateInvoice() {
 
   const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * toNum(item.basePrice)), 0);
   const subtotal = calculateSubtotal();
-  const breakdown = calculateTaxBreakdown(subtotal, discount);
+  const breakdown = calculateTaxBreakdown(subtotal, discount, false);
 
   // Número de factura: YY1XXX (Miguel Santiago) / YY2XXX (Antonio Pérez)
   const currentYear = new Date().getFullYear().toString().slice(-2);
@@ -105,6 +105,7 @@ export default function CreateInvoice() {
         discount,
         notes,
         applyIrpf: "true",
+        applyIgic: "false",
         status: "pending" as const,
       }, {
         onSuccess: () => {
@@ -124,6 +125,7 @@ export default function CreateInvoice() {
         discount,
         notes,
         applyIrpf: "true",
+        applyIgic: "false",
         status: "pending" as const,
       };
       addInvoice(newInvoice, {
@@ -153,6 +155,7 @@ export default function CreateInvoice() {
         discount,
         notes,
         applyIrpf: "true",
+        applyIgic: "false",
         status: "draft" as const,
       }, {
         onSuccess: () => { toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` }); setLocation("/"); },
@@ -169,6 +172,7 @@ export default function CreateInvoice() {
         discount,
         notes,
         applyIrpf: "true",
+        applyIgic: "false",
         status: "draft" as const,
       };
       addInvoice(newInvoice, {
@@ -189,7 +193,7 @@ export default function CreateInvoice() {
             {isEditing ? `Editar Borrador ${draftInvoice?.number}` : "Crear Factura"}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con IGIC (7%) y descuentos."}
+            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con descuentos."}
           </p>
         </div>
       </div>
@@ -340,10 +344,6 @@ export default function CreateInvoice() {
               <div className="flex justify-between opacity-80">
                 <span>Subtotal</span>
                 <span>{formatCurrency(breakdown.subtotal)}</span>
-              </div>
-              <div className="flex justify-between opacity-80">
-                <span>IGIC (7%)</span>
-                <span className="text-green-400">+{formatCurrency(breakdown.igic)}</span>
               </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>

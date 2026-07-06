@@ -44,6 +44,7 @@ export type Invoice = {
   discount: string | number;
   notes: string;
   applyIrpf?: string | boolean;
+  applyIgic?: string | boolean;
   status: "draft" | "pending" | "paid" | "overdue";
 };
 

@@ -49,7 +49,8 @@ export default function ExportInvoice() {
     (sum, item) => sum + item.quantity * toNum(item.basePrice),
     0,
   );
-  const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount));
+  const igicActive = invoice.applyIgic !== "false" && invoice.applyIgic !== false;
+  const breakdown = calculateTaxBreakdown(subtotal, toNum(invoice.discount), igicActive);
   const invCompany = invoice.companyId === 2 ? company2 : company;
   const isCompany2 = invoice.companyId === 2;
 
@@ -209,9 +210,11 @@ export default function ExportInvoice() {
                           <span>Descuento</span><span>-{formatEuros(toNum(invoice.discount))}</span>
                         </div>
                       )}
-                      <div className="flex justify-between py-2 px-4 text-slate-800">
-                        <span>IGIC (7%)</span><span>+{formatEuros(breakdown.igic)}</span>
-                      </div>
+                      {igicActive && (
+                        <div className="flex justify-between py-2 px-4 text-slate-800">
+                          <span>IGIC (7%)</span><span>+{formatEuros(breakdown.igic)}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between items-center py-3 px-4 font-bold bg-[transparent] text-[#1d293d]">
                       <span className="uppercase tracking-widest text-[18px]">Total</span>
@@ -368,10 +371,12 @@ export default function ExportInvoice() {
                             <td style={{ padding: "4px 0", textAlign: "right", color: "#374151" }}>-{formatEuros(toNum(invoice.discount))}</td>
                           </tr>
                         )}
-                        <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                          <td style={{ padding: "4px 16px 8px 0", color: "#64748b" }}>IGIC (7%)</td>
-                          <td style={{ padding: "4px 0 8px 0", textAlign: "right", color: "#374151" }}>+{formatEuros(breakdown.igic)}</td>
-                        </tr>
+                        {igicActive && (
+                          <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                            <td style={{ padding: "4px 16px 8px 0", color: "#64748b" }}>IGIC (7%)</td>
+                            <td style={{ padding: "4px 0 8px 0", textAlign: "right", color: "#374151" }}>+{formatEuros(breakdown.igic)}</td>
+                          </tr>
+                        )}
                         <tr>
                           <td style={{ padding: "10px 16px 4px 0", fontWeight: 700, fontSize: "15px", color: "#8B1A1A" }}>Total</td>
                           <td style={{ padding: "10px 0 4px 0", textAlign: "right", fontWeight: 700, fontSize: "15px", color: "#8B1A1A" }}>{formatEuros(breakdown.total)}</td>

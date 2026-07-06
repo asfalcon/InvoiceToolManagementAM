@@ -15,7 +15,8 @@ export default function Dashboard() {
 
   const getInvoiceTotal = (invoice: any) => {
     const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.basePrice || 0)), 0);
-    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0));
+    const igicActive = invoice.applyIgic !== "false" && invoice.applyIgic !== false;
+    const breakdown = calculateTaxBreakdown(subtotal, parseFloat(invoice.discount || 0), igicActive);
     return breakdown.total;
   };
 
