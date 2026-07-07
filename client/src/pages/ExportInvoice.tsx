@@ -234,7 +234,7 @@ export default function ExportInvoice() {
                     {invCompany.bankCode && <p className="mt-1">Banco: {invCompany.bankCode}</p>}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
+                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">factura exenta de igic por franquicia fiscal</h4>
                     <p className="text-justify text-[9px] text-[#1d293d]">{invCompany.legalNotes}</p>
                   </div>
                 </div>
