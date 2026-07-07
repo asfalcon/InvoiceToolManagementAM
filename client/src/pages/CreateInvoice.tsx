@@ -346,6 +346,9 @@ export default function CreateInvoice() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(breakdown.subtotal)}</span>
               </div>
+              <div className="text-[11px] opacity-50 italic pt-1">
+                Factura exenta de IGIC por franquicia fiscal
+              </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>
                 <Input

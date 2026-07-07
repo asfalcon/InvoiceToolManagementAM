@@ -166,9 +166,13 @@ export default function InvoicesList() {
            <span>Descuento</span><span>-${fmtEur(discount)}</span>
          </div>` : '';
 
-    const igicRowHtml = igicActive ? `<div class="flex justify-between py-2 px-4 text-slate-800">
+    const igicRowHtml = igicActive
+      ? `<div class="flex justify-between py-2 px-4 text-slate-800">
            <span>IGIC (7%)</span><span>+${fmtEur(breakdown.igic)}</span>
-         </div>` : '';
+         </div>`
+      : `<div class="py-2 px-4 text-[10px] text-slate-400 italic border-t border-slate-100">
+           Factura exenta de IGIC por franquicia fiscal
+         </div>`;
 
     const notesHtml = inv.notes
       ? `<div class="text-slate-600 mt-4">
