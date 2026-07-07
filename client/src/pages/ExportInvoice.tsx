@@ -228,13 +228,14 @@ export default function ExportInvoice() {
               <div className="mt-auto pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-sans">
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información de Pago</h4>
+                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Factura exenta de IGIC por franquicia fiscal
+                    Información de Pago</h4>
                     <p className="mb-1 text-[#1d293d]">Método: Transferencia Bancaria</p>
                     <p className="text-slate-800 mt-1 font-normal">IBAN: {invCompany.bankAccount}</p>
                     {invCompany.bankCode && <p className="mt-1">Banco: {invCompany.bankCode}</p>}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">factura exenta de igic por franquicia fiscal</h4>
+                    <h4 className="font-bold text-slate-700 mb-2 uppercase tracking-widest">Información Legal</h4>
                     <p className="text-justify text-[9px] text-[#1d293d]">{invCompany.legalNotes}</p>
                   </div>
                 </div>
