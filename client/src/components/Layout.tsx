@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
     { href: "/", label: "Facturas", icon: FileText },
-    { href: "/create", label: "Nueva", icon: PlusCircle },
+    { href: "/create", label: "Nueva factura", icon: PlusCircle },
     { href: "/quotes", label: "Presupuestos", icon: ClipboardList },
     { href: "/quotes/create", label: "Nuevo Pres.", icon: FilePlus },
     { href: "/clients", label: "Clientes", icon: Users },
