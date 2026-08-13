@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { FileText, PlusCircle, LayoutDashboard, Users, Settings, Wrench } from "lucide-react";
+import { FileText, PlusCircle, LayoutDashboard, Users, Settings, Wrench, ClipboardList, FilePlus } from "lucide-react";
 import { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -9,10 +9,18 @@ export default function Layout({ children }: { children: ReactNode }) {
     { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
     { href: "/", label: "Facturas", icon: FileText },
     { href: "/create", label: "Nueva", icon: PlusCircle },
+    { href: "/quotes", label: "Presupuestos", icon: ClipboardList },
+    { href: "/quotes/create", label: "Nuevo Pres.", icon: FilePlus },
     { href: "/clients", label: "Clientes", icon: Users },
     { href: "/services", label: "Servicios", icon: Wrench },
     { href: "/settings", label: "Config", icon: Settings },
   ];
+
+  const isActive = (item: typeof navItems[0]) => {
+    if (item.href === "/" ) return location === "/" || location.startsWith("/export");
+    if (item.href === "/quotes") return location === "/quotes" || location.startsWith("/quotes/export");
+    return location === item.href || location.startsWith(item.href + "/");
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background print:h-auto print:overflow-visible">
@@ -26,13 +34,13 @@ export default function Layout({ children }: { children: ReactNode }) {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.href || (item.href === "/" && location.startsWith("/export"));
+            const active = isActive(item);
             return (
               <Link key={item.href} href={item.href}>
                 <div
                   data-testid={`nav-link-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                   className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer ${
-                    isActive 
+                    active
                       ? "bg-primary/10 text-primary font-medium" 
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
@@ -49,10 +57,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-card flex justify-around p-1 z-50 overflow-x-auto print:hidden">
          {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.href;
+            const active = isActive(item);
             return (
               <Link key={item.href} href={item.href}>
-                <div className={`flex flex-col items-center p-2 cursor-pointer min-w-fit ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                <div className={`flex flex-col items-center p-2 cursor-pointer min-w-fit ${active ? "text-primary" : "text-muted-foreground"}`}>
                   <Icon className="w-5 h-5" />
                   <span className="text-[9px] mt-1 font-medium">{item.label}</span>
                 </div>

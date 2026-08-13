@@ -13,6 +13,9 @@ import ClientsManagement from "@/pages/ClientsManagement";
 import ServicesManagement from "@/pages/ServicesManagement";
 import Settings from "@/pages/Settings";
 import ExportInvoice from "@/pages/ExportInvoice";
+import QuotesList from "@/pages/QuotesList";
+import CreateQuote from "@/pages/CreateQuote";
+import ExportQuote from "@/pages/ExportQuote";
 import Layout from "@/components/Layout";
 
 function Router() {
@@ -27,6 +30,10 @@ function Router() {
         <Route path="/services" component={ServicesManagement} />
         <Route path="/settings" component={Settings} />
         <Route path="/export/:id" component={ExportInvoice} />
+        <Route path="/quotes" component={QuotesList} />
+        <Route path="/quotes/create" component={CreateQuote} />
+        <Route path="/quotes/edit/:id" component={CreateQuote} />
+        <Route path="/quotes/export/:id" component={ExportQuote} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

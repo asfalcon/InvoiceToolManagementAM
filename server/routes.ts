@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertClientSchema, insertServiceSchema, insertInvoiceSchema, insertCompanySettingsSchema, insertThemeSettingsSchema } from "@shared/schema";
+
 import { z } from "zod";
 
 function serverError(res: any, message: string, err: unknown) {
@@ -211,6 +212,111 @@ export async function registerRoutes(
       res.status(204).send();
     } catch (err) {
       serverError(res, "Error al eliminar factura", err);
+    }
+  });
+
+  // --- QUOTES ---
+  app.get("/api/quotes/next-number", async (_req, res) => {
+    try {
+      const number = await storage.getNextQuoteNumber();
+      res.json({ number });
+    } catch (err) {
+      serverError(res, "Error al calcular número de presupuesto", err);
+    }
+  });
+
+  app.get("/api/quotes", async (_req, res) => {
+    try {
+      const data = await storage.getQuotes();
+      res.json(data);
+    } catch (err) {
+      serverError(res, "Error al obtener presupuestos", err);
+    }
+  });
+
+  app.get("/api/quotes/:id", async (req, res) => {
+    try {
+      const quote = await storage.getQuote(req.params.id);
+      if (!quote) return res.status(404).json({ message: "Presupuesto no encontrado" });
+      res.json(quote);
+    } catch (err) {
+      serverError(res, "Error al obtener presupuesto", err);
+    }
+  });
+
+  const quoteWithItemsSchema = z.object({
+    number: z.string(),
+    companyId: z.number().int().optional().default(1),
+    clientName: z.string().optional().default(""),
+    clientEmail: z.string().optional().default(""),
+    clientPhone: z.string().optional().default(""),
+    date: z.string(),
+    validUntil: z.string().optional().default(""),
+    discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
+    notes: z.string().optional().default(""),
+    applyIgic: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional().default("false"),
+    status: z.enum(["draft", "sent", "accepted", "rejected"]).optional().default("draft"),
+    items: z.array(z.object({
+      serviceId: z.string().optional(),
+      description: z.string(),
+      quantity: z.number().int().default(1),
+      basePrice: z.union([z.string(), z.number()]).transform(v => String(v)),
+      taxIncrement: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
+    })),
+  });
+
+  app.post("/api/quotes", async (req, res) => {
+    try {
+      const parsed = quoteWithItemsSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Datos inválidos", errors: parsed.error.errors });
+      const { items, ...quoteData } = parsed.data;
+      const quote = await storage.createQuote(quoteData, items);
+      res.status(201).json(quote);
+    } catch (err: any) {
+      if (err.code === "23505") return res.status(409).json({ message: "El número de presupuesto ya existe" });
+      serverError(res, "Error al crear presupuesto", err);
+    }
+  });
+
+  const quotePatchSchema = z.object({
+    companyId: z.number().int().optional(),
+    clientName: z.string().optional(),
+    clientEmail: z.string().optional(),
+    clientPhone: z.string().optional(),
+    date: z.string().optional(),
+    validUntil: z.string().optional(),
+    discount: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+    notes: z.string().optional(),
+    applyIgic: z.union([z.string(), z.boolean()]).transform(v => String(v)).optional(),
+    status: z.enum(["draft", "sent", "accepted", "rejected"]).optional(),
+    items: z.array(z.object({
+      serviceId: z.string().optional(),
+      description: z.string(),
+      quantity: z.number().int().default(1),
+      basePrice: z.union([z.string(), z.number()]).transform(v => String(v)),
+      taxIncrement: z.union([z.string(), z.number()]).transform(v => String(v)).optional().default("0"),
+    })).optional(),
+  });
+
+  app.patch("/api/quotes/:id", async (req, res) => {
+    try {
+      const parsed = quotePatchSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Datos inválidos", errors: parsed.error.errors });
+      const { items, ...quoteData } = parsed.data;
+      const quote = await storage.updateQuote(req.params.id, quoteData, items);
+      if (!quote) return res.status(404).json({ message: "Presupuesto no encontrado" });
+      res.json(quote);
+    } catch (err) {
+      serverError(res, "Error al actualizar presupuesto", err);
+    }
+  });
+
+  app.delete("/api/quotes/:id", async (req, res) => {
+    try {
+      await storage.deleteQuote(req.params.id);
+      res.status(204).send();
+    } catch (err) {
+      serverError(res, "Error al eliminar presupuesto", err);
     }
   });
 

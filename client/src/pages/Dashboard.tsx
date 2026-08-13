@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { FileText, Clock, CheckCircle2, FileEdit, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Clock, CheckCircle2, FileEdit, ChevronLeft, ChevronRight, ClipboardList, Send, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
@@ -9,7 +9,7 @@ import { calculateTaxBreakdown, formatCurrency } from "@/lib/taxCalculations";
 const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 export default function Dashboard() {
-  const { invoices } = useSettings();
+  const { invoices, quotes } = useSettings();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
@@ -27,11 +27,22 @@ export default function Dashboard() {
   const totalPaid = paidInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
   const totalPending = pendingInvoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
 
+  // Quote stats
+  const sentQuotes = quotes.filter(q => q.status === 'sent' || q.status === 'accepted' || q.status === 'rejected');
+  const acceptedQuotes = quotes.filter(q => q.status === 'accepted');
+  const successRate = sentQuotes.length > 0 ? Math.round((acceptedQuotes.length / sentQuotes.length) * 100) : 0;
+
   const STATS = [
     { label: "Ventas Totales", val: formatCurrency(totalSales), icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Pagadas", val: formatCurrency(totalPaid), icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
     { label: "Pendientes", val: formatCurrency(totalPending), icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
     { label: "Borradores", val: `${draftInvoices.length} factura${draftInvoices.length !== 1 ? 's' : ''}`, icon: FileEdit, color: "text-slate-600", bg: "bg-slate-100" },
+  ];
+
+  const QUOTE_STATS = [
+    { label: "Presupuestos Enviados", val: `${sentQuotes.length}`, icon: Send, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Presupuestos Aceptados", val: `${acceptedQuotes.length}`, icon: ClipboardList, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Tasa de Éxito", val: `${successRate}%`, icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50" },
   ];
 
   const DATA_ESTADOS = [
@@ -62,9 +73,10 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Panel de Control</h1>
-        <p className="text-muted-foreground mt-1">Análisis detallado de tu facturación y clientes.</p>
+        <p className="text-muted-foreground mt-1">Análisis detallado de tu facturación y presupuestos.</p>
       </div>
 
+      {/* Indicadores de facturas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {STATS.map((s, i) => (
           <Card key={i} className="border-none shadow-sm overflow-hidden group hover:scale-[1.02] transition-transform">
@@ -79,6 +91,26 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Indicadores de presupuestos */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-700 mb-3">Presupuestos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {QUOTE_STATS.map((s, i) => (
+            <Card key={i} className="border-none shadow-sm overflow-hidden group hover:scale-[1.02] transition-transform">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className={`${s.bg} p-3 rounded-xl ${s.color}`}>
+                  <s.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
+                  <p className="text-2xl font-bold">{s.val}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

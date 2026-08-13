@@ -84,12 +84,40 @@ export const themeSettings = pgTable("theme_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const quotes = pgTable("quotes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  number: text("number").notNull().unique(),
+  companyId: integer("company_id").notNull().default(1),
+  clientName: text("client_name").notNull().default(""),
+  clientEmail: text("client_email").notNull().default(""),
+  clientPhone: text("client_phone").notNull().default(""),
+  date: text("date").notNull(),
+  validUntil: text("valid_until").notNull().default(""),
+  discount: numeric("discount", { precision: 12, scale: 2 }).notNull().default("0"),
+  notes: text("notes").notNull().default(""),
+  applyIgic: text("apply_igic").notNull().default("false"),
+  status: text("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const quoteItems = pgTable("quote_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  quoteId: varchar("quote_id").notNull(),
+  serviceId: varchar("service_id"),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  basePrice: numeric("base_price", { precision: 12, scale: 2 }).notNull().default("0"),
+  taxIncrement: numeric("tax_increment", { precision: 5, scale: 2 }).notNull().default("0"),
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
 export const insertServiceSchema = createInsertSchema(services).omit({ id: true, createdAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true });
 export const insertCompanySettingsSchema = createInsertSchema(companySettings).omit({ id: true, updatedAt: true });
 export const insertThemeSettingsSchema = createInsertSchema(themeSettings).omit({ id: true, updatedAt: true });
+export const insertQuoteSchema = createInsertSchema(quotes).omit({ id: true, createdAt: true });
+export const insertQuoteItemSchema = createInsertSchema(quoteItems).omit({ id: true });
 
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Client = typeof clients.$inferSelect;
@@ -103,3 +131,7 @@ export type InsertCompanySettings = z.infer<typeof insertCompanySettingsSchema>;
 export type CompanySettings = typeof companySettings.$inferSelect;
 export type InsertThemeSettings = z.infer<typeof insertThemeSettingsSchema>;
 export type ThemeSettings = typeof themeSettings.$inferSelect;
+export type InsertQuote = z.infer<typeof insertQuoteSchema>;
+export type Quote = typeof quotes.$inferSelect;
+export type InsertQuoteItem = z.infer<typeof insertQuoteItemSchema>;
+export type QuoteItem = typeof quoteItems.$inferSelect;

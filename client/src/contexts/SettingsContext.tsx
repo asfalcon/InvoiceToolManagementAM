@@ -75,6 +75,32 @@ export type Invoice = {
   status: "draft" | "pending" | "paid" | "overdue";
 };
 
+export type QuoteItem = {
+  id: string;
+  quoteId?: string;
+  serviceId?: string;
+  description: string;
+  quantity: number;
+  basePrice: string | number;
+  taxIncrement: string | number;
+};
+
+export type Quote = {
+  id: string;
+  number: string;
+  companyId: number;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  date: string;
+  validUntil: string;
+  items: QuoteItem[];
+  discount: string | number;
+  notes: string;
+  applyIgic?: string | boolean;
+  status: "draft" | "sent" | "accepted" | "rejected";
+};
+
 const DEFAULT_COMPANY: CompanySettings = {
   name: "Tu Empresa S.L.",
   nif: "B12345678",
@@ -121,6 +147,10 @@ type SettingsContextType = {
   updateInvoice: (id: string, data: Partial<Invoice>, cb?: MutationCallbacks) => void;
   deleteInvoice: (id: string, cb?: MutationCallbacks) => void;
   markInvoiceAsPaid: (id: string, cb?: MutationCallbacks) => void;
+  quotes: Quote[];
+  addQuote: (quote: Omit<Quote, "id">, cb?: MutationCallbacks) => void;
+  updateQuote: (id: string, data: Partial<Quote>, cb?: MutationCallbacks) => void;
+  deleteQuote: (id: string, cb?: MutationCallbacks) => void;
   isLoading: boolean;
 };
 
@@ -162,7 +192,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     staleTime: Infinity,
   });
 
-  const isLoading = loadingCompany || loadingCompany2 || loadingTheme || loadingServices || loadingClients || loadingInvoices;
+  const { data: quotesData = [], isLoading: loadingQuotes } = useQuery<Quote[]>({
+    queryKey: ["/api/quotes"],
+    staleTime: Infinity,
+  });
+
+  const isLoading = loadingCompany || loadingCompany2 || loadingTheme || loadingServices || loadingClients || loadingInvoices || loadingQuotes;
 
   useEffect(() => {
     if (companyData) setCompany(companyData);
@@ -282,6 +317,41 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/invoices"] }),
   });
 
+  const addQuoteMutation = useMutation({
+    mutationFn: (quote: Omit<Quote, "id">) => apiRequest("POST", "/api/quotes", {
+      number: quote.number,
+      companyId: quote.companyId ?? 1,
+      clientName: quote.clientName || "",
+      clientEmail: quote.clientEmail || "",
+      clientPhone: quote.clientPhone || "",
+      date: quote.date,
+      validUntil: quote.validUntil || "",
+      discount: String(quote.discount || 0),
+      notes: quote.notes || "",
+      applyIgic: "false",
+      status: quote.status || "draft",
+      items: quote.items.map(item => ({
+        serviceId: item.serviceId,
+        description: item.description,
+        quantity: item.quantity,
+        basePrice: String(item.basePrice),
+        taxIncrement: String(item.taxIncrement || 0),
+      })),
+    }).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/quotes"] }),
+  });
+
+  const updateQuoteMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Quote> }) =>
+      apiRequest("PATCH", `/api/quotes/${id}`, data).then(r => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/quotes"] }),
+  });
+
+  const deleteQuoteMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/quotes/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/quotes"] }),
+  });
+
   const value: SettingsContextType = {
     company,
     company2,
@@ -302,6 +372,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updateInvoice: (id, data, cb) => updateInvoiceMutation.mutate({ id, data }, cb),
     deleteInvoice: (id, cb) => deleteInvoiceMutation.mutate(id, cb),
     markInvoiceAsPaid: (id, cb) => updateInvoiceMutation.mutate({ id, data: { status: "paid" } }, cb),
+    quotes: quotesData,
+    addQuote: (quote, cb) => addQuoteMutation.mutate(quote, cb),
+    updateQuote: (id, data, cb) => updateQuoteMutation.mutate({ id, data }, cb),
+    deleteQuote: (id, cb) => deleteQuoteMutation.mutate(id, cb),
     isLoading,
   };
 

@@ -12,139 +12,127 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency, toNum } from "@/lib/taxCalculations";
-import { InvoiceItem, Invoice } from "@/types";
 
-export default function CreateInvoice() {
+type QuoteItemLocal = {
+  id: string;
+  serviceId?: string;
+  description: string;
+  quantity: number;
+  basePrice: number;
+  taxIncrement: number;
+};
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+}
+
+export default function CreateQuote() {
   const [, setLocation] = useLocation();
   const { id: editId } = useParams<{ id?: string }>();
   const { toast } = useToast();
-  const { services, clients, addInvoice, updateInvoice, invoices } = useSettings();
+  const { services, quotes, addQuote, updateQuote } = useSettings();
 
-  const draftInvoice = editId ? invoices.find(i => i.id === editId && i.status === 'draft') : null;
-  const isEditing = !!draftInvoice;
+  const editQuote = editId ? quotes.find(q => q.id === editId) : null;
+  const isEditing = !!editQuote;
 
-  // Check for pre-filled data from a quote conversion
-  const quoteData = (() => {
-    if (isEditing) return null;
-    try {
-      const raw = sessionStorage.getItem("invoiceFromQuote");
-      if (raw) { sessionStorage.removeItem("invoiceFromQuote"); return JSON.parse(raw); }
-    } catch {}
-    return null;
-  })();
+  const today = new Date().toISOString().split("T")[0];
 
-  const [selectedClientId, setSelectedClientId] = useState<string>(draftInvoice?.clientId ?? "");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(draftInvoice?.companyId ?? quoteData?.companyId ?? 1);
-  const [items, setItems] = useState<InvoiceItem[]>(
-    draftInvoice?.items?.length
-      ? draftInvoice.items.map(item => ({ ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement) }))
-      : quoteData?.items?.length
-        ? quoteData.items.map((item: any, i: number) => ({ id: String(i + 1), ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement || 0) }))
-        : [{ id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }]
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(editQuote?.companyId ?? 1);
+  const [clientName, setClientName] = useState(editQuote?.clientName ?? "");
+  const [clientEmail, setClientEmail] = useState(editQuote?.clientEmail ?? "");
+  const [clientPhone, setClientPhone] = useState(editQuote?.clientPhone ?? "");
+  const [items, setItems] = useState<QuoteItemLocal[]>(
+    editQuote?.items?.length
+      ? editQuote.items.map(item => ({ ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement) }))
+      : [{ id: "1", description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }]
   );
-  const [discount, setDiscount] = useState(draftInvoice ? toNum(draftInvoice.discount) : toNum(quoteData?.discount ?? 0));
-  const [issueDate, setIssueDate] = useState(draftInvoice?.date ?? new Date().toISOString().split("T")[0]);
-  const [notes, setNotes] = useState(draftInvoice?.notes ?? quoteData?.notes ?? "");
-
-  const selectedClient = clients.find(c => c.id === selectedClientId);
+  const [discount, setDiscount] = useState(editQuote ? toNum(editQuote.discount) : 0);
+  const [issueDate, setIssueDate] = useState(editQuote?.date ?? today);
+  const [validUntil, setValidUntil] = useState(editQuote?.validUntil ?? addDays(today, 15));
+  const [notes, setNotes] = useState(editQuote?.notes ?? "");
 
   const addItem = () => {
-    setItems([...items, {
-      id: Math.random().toString(36).substring(7),
-      description: "",
-      quantity: 1,
-      basePrice: 0,
-      taxIncrement: 0
-    }]);
+    setItems([...items, { id: Math.random().toString(36).substring(7), description: "", quantity: 1, basePrice: 0, taxIncrement: 0 }]);
   };
 
   const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
-    }
+    if (items.length > 1) setItems(items.filter(item => item.id !== id));
   };
 
-  const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
+  const updateItem = (id: string, field: keyof QuoteItemLocal, value: string | number) => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
   const applyService = (itemId: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service) {
-      const netPrice = toNum(selectedClient?.serviceRates?.[service.name] || service.basePrice);
       setItems(items.map(item => item.id === itemId ? {
         ...item,
         serviceId: service.id,
         description: service.description,
-        basePrice: netPrice,
-        taxIncrement: service.taxIncrement
+        basePrice: toNum(service.basePrice),
+        taxIncrement: toNum(service.taxIncrement),
       } : item));
     }
   };
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * toNum(item.basePrice)), 0);
-  const subtotal = calculateSubtotal();
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.basePrice, 0);
   const breakdown = calculateTaxBreakdown(subtotal, discount, false);
 
-  // Número de factura: obtenido del backend para garantizar unicidad
   const { data: nextNumberData } = useQuery<{ number: string }>({
-    queryKey: ["/api/invoices/next-number", selectedCompanyId],
-    queryFn: () => fetch(`/api/invoices/next-number/${selectedCompanyId}`).then(r => r.json()),
+    queryKey: ["/api/quotes/next-number"],
+    queryFn: () => fetch("/api/quotes/next-number").then(r => r.json()),
     staleTime: 0,
     enabled: !isEditing,
   });
-  const nextInvoiceNumber = isEditing ? (draftInvoice?.number ?? "") : (nextNumberData?.number ?? "...");
+  const nextQuoteNumber = isEditing ? (editQuote?.number ?? "") : (nextNumberData?.number ?? "...");
 
-  const handleSave = () => {
-    if (!selectedClientId) {
-      toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
-      return;
+  const validate = () => {
+    if (!clientName.trim()) {
+      toast({ title: "Error", description: "Introduce el nombre del cliente", variant: "destructive" });
+      return false;
     }
-
     if (items.some(i => i.basePrice === 0 || !i.description)) {
       toast({ title: "Atención", description: "Algunos conceptos están incompletos", variant: "destructive" });
-      return;
+      return false;
     }
+    return true;
+  };
 
-    const onSuccess = () => setLocation("/");
-    const onError = (err: any) => toast({ title: "Error al guardar factura", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
+  const buildQuoteData = (status: "draft" | "sent") => ({
+    number: nextQuoteNumber,
+    companyId: selectedCompanyId,
+    clientName: clientName.trim(),
+    clientEmail: clientEmail.trim(),
+    clientPhone: clientPhone.trim(),
+    date: issueDate,
+    validUntil,
+    items,
+    discount,
+    notes,
+    applyIgic: "false" as const,
+    status,
+  });
 
-    if (isEditing && draftInvoice) {
-      updateInvoice(draftInvoice.id, {
-        clientId: selectedClientId,
-        companyId: selectedCompanyId,
-        date: issueDate,
-        items,
-        discount,
-        notes,
-        applyIrpf: "true",
-        applyIgic: "false",
-        status: "pending" as const,
-      }, {
+  const handleSave = () => {
+    if (!validate()) return;
+    const onError = (err: any) => toast({ title: "Error al guardar presupuesto", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
+
+    if (isEditing && editQuote) {
+      updateQuote(editQuote.id, { ...buildQuoteData("sent"), status: editQuote.status as any }, {
         onSuccess: () => {
-          toast({ title: "Factura actualizada", description: `La factura ${draftInvoice.number} se ha guardado y marcado como pendiente.` });
-          onSuccess();
+          toast({ title: "Presupuesto actualizado", description: `El presupuesto ${editQuote.number} se ha guardado.` });
+          setLocation("/quotes");
         },
         onError,
       });
     } else {
-      const newInvoice = {
-        number: nextInvoiceNumber,
-        clientId: selectedClientId,
-        companyId: selectedCompanyId,
-        date: issueDate,
-        dueDate: "",
-        items,
-        discount,
-        notes,
-        applyIrpf: "true",
-        applyIgic: "false",
-        status: "pending" as const,
-      };
-      addInvoice(newInvoice, {
+      addQuote(buildQuoteData("sent"), {
         onSuccess: () => {
-          toast({ title: "Factura guardada", description: `La factura ${nextInvoiceNumber} se ha creado correctamente.` });
-          onSuccess();
+          toast({ title: "Presupuesto guardado", description: `El presupuesto ${nextQuoteNumber} se ha creado correctamente.` });
+          setLocation("/quotes");
         },
         onError,
       });
@@ -152,44 +140,17 @@ export default function CreateInvoice() {
   };
 
   const handleSaveDraft = () => {
-    if (!selectedClientId) {
-      toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
-      return;
-    }
-
+    if (!validate()) return;
     const onError = (err: any) => toast({ title: "Error al guardar borrador", description: err?.message || "Inténtalo de nuevo", variant: "destructive" });
 
-    if (isEditing && draftInvoice) {
-      updateInvoice(draftInvoice.id, {
-        clientId: selectedClientId,
-        companyId: selectedCompanyId,
-        date: issueDate,
-        items,
-        discount,
-        notes,
-        applyIrpf: "true",
-        applyIgic: "false",
-        status: "draft" as const,
-      }, {
-        onSuccess: () => { toast({ title: "Borrador guardado", description: `Los cambios se han guardado como borrador.` }); setLocation("/"); },
+    if (isEditing && editQuote) {
+      updateQuote(editQuote.id, buildQuoteData("draft"), {
+        onSuccess: () => { toast({ title: "Borrador guardado" }); setLocation("/quotes"); },
         onError,
       });
     } else {
-      const newInvoice = {
-        number: nextInvoiceNumber,
-        clientId: selectedClientId,
-        companyId: selectedCompanyId,
-        date: issueDate,
-        dueDate: "",
-        items,
-        discount,
-        notes,
-        applyIrpf: "true",
-        applyIgic: "false",
-        status: "draft" as const,
-      };
-      addInvoice(newInvoice, {
-        onSuccess: () => { toast({ title: "Borrador guardado", description: `La factura ${nextInvoiceNumber} se ha guardado como borrador.` }); setLocation("/"); },
+      addQuote(buildQuoteData("draft"), {
+        onSuccess: () => { toast({ title: "Borrador guardado", description: `El presupuesto ${nextQuoteNumber} se ha guardado como borrador.` }); setLocation("/quotes"); },
         onError,
       });
     }
@@ -198,33 +159,29 @@ export default function CreateInvoice() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => setLocation("/")} className="rounded-full">
+        <Button variant="ghost" size="icon" onClick={() => setLocation("/quotes")} className="rounded-full">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {isEditing ? `Editar Borrador ${draftInvoice?.number}` : "Crear Factura"}
+            {isEditing ? `Editar Presupuesto ${editQuote?.number}` : "Crear Presupuesto"}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {isEditing ? "Edita los datos del borrador. Al guardar quedará como pendiente." : "Facturación en euros con descuentos."}
-          </p>
+          <p className="text-muted-foreground mt-1">Presupuesto en euros con descuentos.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 space-y-6">
+          {/* Empresa y datos del cliente */}
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="border-b bg-gray-50/50 pb-4">
-              <CardTitle className="text-lg">Cliente y Empresa</CardTitle>
+              <CardTitle className="text-lg">Empresa y Cliente</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
                 <Label>Empresa Emisora</Label>
-                <Select
-                  value={String(selectedCompanyId)}
-                  onValueChange={(val) => setSelectedCompanyId(Number(val))}
-                >
-                  <SelectTrigger className="bg-white" data-testid="select-company">
+                <Select value={String(selectedCompanyId)} onValueChange={(val) => setSelectedCompanyId(Number(val))}>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Selecciona empresa..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -234,36 +191,46 @@ export default function CreateInvoice() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Seleccionar Cliente</Label>
-                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Busca un cliente..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-64 overflow-y-auto">
-                    {clients.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedClient && (
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/10 space-y-2 text-sm">
-                  <p><span className="font-bold">NIF:</span> {selectedClient.nif}</p>
-                  <p><span className="font-bold">Email:</span> {selectedClient.email}</p>
-                  <p><span className="font-bold">Dirección:</span> {selectedClient.address}, {selectedClient.city}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Nombre y apellidos *</Label>
+                  <Input
+                    value={clientName}
+                    onChange={e => setClientName(e.target.value)}
+                    placeholder="Juan García López"
+                    className="text-sm"
+                  />
                 </div>
-              )}
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={clientEmail}
+                    onChange={e => setClientEmail(e.target.value)}
+                    placeholder="cliente@email.com"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Móvil</Label>
+                  <Input
+                    value={clientPhone}
+                    onChange={e => setClientPhone(e.target.value)}
+                    placeholder="+34 600 000 000"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Conceptos */}
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="border-b bg-gray-50/50 pb-4">
               <CardTitle className="text-lg">Conceptos</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              {items.map((item, idx) => (
+              {items.map((item) => (
                 <div key={item.id} className="space-y-3 p-4 border rounded-lg bg-white">
                   <div className="space-y-2">
                     <Label className="text-sm">Cargar Servicio Predefinido</Label>
@@ -335,7 +302,7 @@ export default function CreateInvoice() {
 
                   <div className="pt-2 border-t text-right">
                     <span className="text-sm font-bold">
-                      Subtotal: {formatCurrency(item.quantity * toNum(item.basePrice))}
+                      Subtotal: {formatCurrency(item.quantity * item.basePrice)}
                     </span>
                   </div>
                 </div>
@@ -348,6 +315,7 @@ export default function CreateInvoice() {
           </Card>
         </div>
 
+        {/* Panel lateral */}
         <div className="space-y-6">
           <Card className="border-none shadow-sm bg-slate-900 text-white">
             <CardHeader className="pb-3">
@@ -359,7 +327,7 @@ export default function CreateInvoice() {
                 <span>{formatCurrency(breakdown.subtotal)}</span>
               </div>
               <div className="text-[11px] opacity-50 italic pt-1">
-                Factura exenta de IGIC por franquicia fiscal
+                Exento de IGIC por franquicia fiscal
               </div>
               <div className="space-y-2 border-t border-white/10 pt-2">
                 <Label className="text-xs opacity-70">Descuento (€)</Label>
@@ -381,31 +349,54 @@ export default function CreateInvoice() {
 
           <Card className="border-none shadow-sm bg-white">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Detalles de Emisión</CardTitle>
+              <CardTitle className="text-lg">Detalles</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-sm">Número de Factura</Label>
-                <Input value={isEditing ? draftInvoice!.number : nextInvoiceNumber} disabled className="text-sm bg-gray-50" />
+                <Label className="text-sm">Número de Presupuesto</Label>
+                <Input value={isEditing ? editQuote!.number : nextQuoteNumber} disabled className="text-sm bg-gray-50" />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Fecha de Emisión</Label>
-                <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="text-sm" />
+                <Input
+                  type="date"
+                  value={issueDate}
+                  onChange={(e) => {
+                    setIssueDate(e.target.value);
+                    if (!isEditing) setValidUntil(addDays(e.target.value, 15));
+                  }}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Válido hasta</Label>
+                <Input
+                  type="date"
+                  value={validUntil}
+                  onChange={(e) => setValidUntil(e.target.value)}
+                  className="text-sm"
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Notas</Label>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas adicionales..." className="resize-none text-sm" rows={2} />
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Notas adicionales..."
+                  className="resize-none text-sm"
+                  rows={2}
+                />
               </div>
             </CardContent>
             <CardFooter className="bg-gray-50/50 border-t p-4 flex flex-col gap-2">
               <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1 bg-white text-sm" onClick={() => setLocation("/")}>
+                <Button variant="outline" className="flex-1 bg-white text-sm" onClick={() => setLocation("/quotes")}>
                   <X className="w-4 h-4 mr-2" />
                   Cancelar
                 </Button>
-                <Button data-testid="btn-save-invoice" className="flex-1 text-sm" onClick={handleSave}>
+                <Button className="flex-1 text-sm" onClick={handleSave}>
                   <Save className="w-4 h-4 mr-2" />
-                  {isEditing ? "Guardar Factura" : "Guardar"}
+                  {isEditing ? "Actualizar" : "Guardar"}
                 </Button>
               </div>
               <Button
