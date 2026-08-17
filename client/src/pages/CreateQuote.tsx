@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { Save, X, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Save, X, Plus, Trash2, ArrowLeft, Search, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
 import { calculateTaxBreakdown, formatCurrency, toNum } from "@/lib/taxCalculations";
@@ -32,7 +34,7 @@ export default function CreateQuote() {
   const [, setLocation] = useLocation();
   const { id: editId } = useParams<{ id?: string }>();
   const { toast } = useToast();
-  const { services, quotes, addQuote, updateQuote } = useSettings();
+  const { services, quotes, clients, addQuote, updateQuote } = useSettings();
 
   const editQuote = editId ? quotes.find(q => q.id === editId) : null;
   const isEditing = !!editQuote;
@@ -43,6 +45,49 @@ export default function CreateQuote() {
   const [clientName, setClientName] = useState(editQuote?.clientName ?? "");
   const [clientEmail, setClientEmail] = useState(editQuote?.clientEmail ?? "");
   const [clientPhone, setClientPhone] = useState(editQuote?.clientPhone ?? "");
+
+  // Client search state
+  const [manualEntry, setManualEntry] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const filteredClients = clients.filter(c =>
+    c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    c.email.toLowerCase().includes(clientSearch.toLowerCase())
+  );
+
+  const handleSelectClient = (client: { id: string; name: string; email: string; phone: string }) => {
+    setSelectedClientId(client.id);
+    setClientName(client.name);
+    setClientEmail(client.email);
+    setClientPhone(client.phone);
+    setClientSearch(client.name);
+    setShowDropdown(false);
+  };
+
+  const handleManualToggle = (checked: boolean) => {
+    setManualEntry(checked);
+    if (checked) {
+      setSelectedClientId(null);
+      setClientSearch("");
+      setClientName("");
+      setClientEmail("");
+      setClientPhone("");
+    }
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   const [items, setItems] = useState<QuoteItemLocal[]>(
     editQuote?.items?.length
       ? editQuote.items.map(item => ({ ...item, basePrice: toNum(item.basePrice), taxIncrement: toNum(item.taxIncrement) }))
@@ -190,6 +235,78 @@ export default function CreateQuote() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Buscador de cliente (solo en creación) */}
+              {!isEditing && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="manualEntry"
+                        checked={manualEntry}
+                        onCheckedChange={(v) => handleManualToggle(!!v)}
+                      />
+                      <Label htmlFor="manualEntry" className="text-sm font-normal cursor-pointer">
+                        Cliente no registrado (rellenar manualmente)
+                      </Label>
+                    </div>
+                  </div>
+
+                  {!manualEntry && (
+                    <div className="space-y-2" ref={searchRef}>
+                      <Label className="flex items-center gap-1.5">
+                        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+                        Buscar cliente registrado
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          value={clientSearch}
+                          onChange={e => {
+                            setClientSearch(e.target.value);
+                            setShowDropdown(true);
+                            if (!e.target.value) {
+                              setSelectedClientId(null);
+                              setClientName("");
+                              setClientEmail("");
+                              setClientPhone("");
+                            }
+                          }}
+                          onFocus={() => setShowDropdown(true)}
+                          placeholder="Nombre o email del cliente..."
+                          className="text-sm"
+                        />
+                        {showDropdown && clientSearch.length > 0 && (
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg max-h-52 overflow-y-auto">
+                            {filteredClients.length > 0 ? (
+                              filteredClients.map(c => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  className="w-full text-left px-3 py-2.5 hover:bg-accent text-sm flex flex-col gap-0.5 border-b border-border/50 last:border-0"
+                                  onMouseDown={() => handleSelectClient(c)}
+                                >
+                                  <span className="font-medium text-foreground">{c.name}</span>
+                                  <span className="text-xs text-muted-foreground">{c.email}{c.phone ? ` · ${c.phone}` : ""}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-3 py-3 text-sm text-muted-foreground text-center">
+                                No se encontraron clientes
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {selectedClientId && (
+                        <div className="flex items-center gap-2 text-xs text-emerald-600">
+                          <UserCheck className="w-3.5 h-3.5" />
+                          <span>Cliente seleccionado — puedes editar los campos si es necesario</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
