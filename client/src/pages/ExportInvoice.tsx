@@ -120,32 +120,37 @@ export default function ExportInvoice() {
               className="bg-white text-slate-900 shadow-xl print:shadow-none p-10 w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-col font-sans overflow-hidden"
             >
               {/* Header */}
-              <div className="flex justify-between items-start mb-5">
-                <div className="w-[48%]">
-                  <img src={Logo_AM} alt="LogoAdmin" className="max-h-24 mb-2 object-contain" />
-                  <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-                    <br />
-                    {invCompany.name}<br />
-                    {invCompany.nif && <span>{invCompany.nif}<br /></span>}
-                    {invCompany.address}<br />
-                    {invCompany.zipCode} {invCompany.city},{" "}
-                    {(invCompany as any).province || invCompany.country}<br />
-                    {invCompany.email && <span>{invCompany.email}<br /></span>}
-                    {invCompany.phone && <span>{invCompany.phone}</span>}
+              <div className="mb-5">
+                {/* Fila 1: Logo (izq) — FACTURA centrada verticalmente con logo (dcha) */}
+                <div className="flex justify-between items-center mb-4">
+                  <div className="w-[48%]">
+                    <img src={Logo_AM} alt="LogoAdmin" className="max-h-24 object-contain" />
+                  </div>
+                  <div className="w-[48%] text-right">
+                    <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900">FACTURA</div>
                   </div>
                 </div>
-                <div className="w-[48%] text-right">
-                  <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-3">FACTURA</div>
-                  <div className="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
-                  <div className="font-semibold text-sm text-slate-800 mb-3">
-                    {new Date(invoice.date).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}
+                {/* Fila 2: Datos mi empresa (izq) — Datos cliente (dcha) a la misma altura */}
+                <div className="flex justify-between items-start">
+                  <div className="w-[48%]">
+                    <div className="text-xs leading-relaxed text-slate-700 font-sans">
+                      {invCompany.name}<br />
+                      {invCompany.nif && <span>{invCompany.nif}<br /></span>}
+                      {invCompany.address}<br />
+                      {invCompany.zipCode} {invCompany.city},{" "}
+                      {(invCompany as any).province || invCompany.country}<br />
+                      {invCompany.email && <span>{invCompany.email}<br /></span>}
+                      {invCompany.phone && <span>{invCompany.phone}</span>}
+                    </div>
                   </div>
-                  <div className="font-bold text-base text-slate-800 mb-1">{client.name}</div>
-                  <div className="text-xs leading-relaxed text-slate-700 font-sans">
-                    <span className="font-semibold">NIF:</span> {client.nif}<br />
-                    {client.address}<br />
-                    {client.zipCode} {client.city}, {client.country}<br />
-                    {client.email && <span>{client.email}</span>}
+                  <div className="w-[48%] text-right">
+                    <div className="font-bold text-sm text-slate-800 mb-1">{client.name}</div>
+                    <div className="text-xs leading-relaxed text-slate-700 font-sans">
+                      {client.nif && <span><span className="font-semibold">NIF:</span> {client.nif}<br /></span>}
+                      {client.address && <span>{client.address}<br /></span>}
+                      {(client.zipCode || client.city) && <span>{client.zipCode} {client.city}{client.country ? `, ${client.country}` : ""}<br /></span>}
+                      {client.email && <span>{client.email}</span>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -155,6 +160,12 @@ export default function ExportInvoice() {
                 <div>
                   <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Factura:</div>
                   <div className="font-semibold text-sm text-slate-800">{invoice.number}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+                  <div className="font-semibold text-sm text-slate-800">
+                    {new Date(invoice.date).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}
+                  </div>
                 </div>
               </div>
 

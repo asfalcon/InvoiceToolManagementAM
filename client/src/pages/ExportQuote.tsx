@@ -129,28 +129,35 @@ export default function ExportQuote() {
               {/* Contenido */}
               <div className="flex flex-col h-full p-10">
               {/* Header */}
-              <div className="flex justify-between items-start mb-5">
-                <div className="w-[48%]">
-                  <img src={Logo_AM} alt="LogoAdmin" className="max-h-24 mb-2 object-contain" />
-                  <div className="text-xs leading-relaxed text-slate-700 font-sans mt-2">
-                    <br />
-                    {invCompany.name}<br />
-                    {invCompany.nif && <span>{invCompany.nif}<br /></span>}
-                    {invCompany.address}<br />
-                    {invCompany.zipCode} {invCompany.city},{" "}
-                    {(invCompany as any).province || invCompany.country}<br />
-                    {invCompany.email && <span>{invCompany.email}<br /></span>}
-                    {invCompany.phone && <span>{invCompany.phone}</span>}
+              <div className="mb-5">
+                {/* Fila 1: Logo (izq) — PRESUPUESTO centrada verticalmente con logo (dcha) */}
+                <div className="flex justify-between items-center mb-4">
+                  <div className="w-[48%]">
+                    <img src={Logo_AM} alt="LogoAdmin" className="max-h-24 object-contain" />
+                  </div>
+                  <div className="w-[48%] text-right">
+                    <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900">PRESUPUESTO</div>
                   </div>
                 </div>
-                <div className="w-[48%] text-right">
-                  <div className="text-[36px] font-normal tracking-[0.15em] uppercase text-slate-900 mb-3">PRESUPUESTO</div>
-                  <div className="text-slate-500 mb-1 text-[10px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
-                  <div className="font-semibold text-sm text-slate-800 mb-3">{formatDate(quote.date)}</div>
-                  <div className="font-bold text-base text-slate-800 mb-1">{quote.clientName}</div>
-                  <div className="text-xs leading-relaxed text-slate-700 font-sans">
-                    {quote.clientEmail && <span>{quote.clientEmail}<br /></span>}
-                    {quote.clientPhone && <span>{quote.clientPhone}</span>}
+                {/* Fila 2: Datos mi empresa (izq) — Datos cliente (dcha) a la misma altura */}
+                <div className="flex justify-between items-start">
+                  <div className="w-[48%]">
+                    <div className="text-xs leading-relaxed text-slate-700 font-sans">
+                      {invCompany.name}<br />
+                      {invCompany.nif && <span>{invCompany.nif}<br /></span>}
+                      {invCompany.address}<br />
+                      {invCompany.zipCode} {invCompany.city},{" "}
+                      {(invCompany as any).province || invCompany.country}<br />
+                      {invCompany.email && <span>{invCompany.email}<br /></span>}
+                      {invCompany.phone && <span>{invCompany.phone}</span>}
+                    </div>
+                  </div>
+                  <div className="w-[48%] text-right">
+                    <div className="font-bold text-sm text-slate-800 mb-1">{quote.clientName}</div>
+                    <div className="text-xs leading-relaxed text-slate-700 font-sans">
+                      {quote.clientEmail && <span>{quote.clientEmail}<br /></span>}
+                      {quote.clientPhone && <span>{quote.clientPhone}</span>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -160,6 +167,10 @@ export default function ExportQuote() {
                 <div>
                   <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Nº de Presupuesto:</div>
                   <div className="font-semibold text-sm text-slate-800">{quote.number}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Fecha de Emisión:</div>
+                  <div className="font-semibold text-sm text-slate-800">{formatDate(quote.date)}</div>
                 </div>
                 <div>
                   <div className="text-slate-500 mb-1 text-[11px] uppercase tracking-wider font-semibold">Válido hasta:</div>
