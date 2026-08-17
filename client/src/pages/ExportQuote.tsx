@@ -123,8 +123,12 @@ export default function ExportQuote() {
           {!isCompany2 && (
             <div
               ref={quoteRef}
-              className="bg-white text-slate-900 shadow-xl print:shadow-none p-10 w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-col font-sans overflow-hidden"
+              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-row font-sans overflow-hidden"
             >
+              {/* Franja lateral izquierda */}
+              <div style={{ width: "48px", minWidth: "48px", background: "#B2D3C2", flexShrink: 0 }} />
+              {/* Contenido */}
+              <div className="flex flex-col flex-1 p-10 min-w-0">
               {/* Header */}
               <div className="flex justify-between items-start mb-5">
                 <div className="w-[48%]">
@@ -243,6 +247,7 @@ export default function ExportQuote() {
                   </div>
                 </div>
               </div>
+              </div>{/* fin contenido empresa 1 */}
             </div>
           )}
 
@@ -250,9 +255,12 @@ export default function ExportQuote() {
           {isCompany2 && (
             <div
               ref={quoteRef}
-              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-col"
+              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-row"
             >
-              <div className="flex flex-col flex-1 p-8" style={{ minHeight: "297mm" }}>
+              {/* Franja lateral izquierda */}
+              <div style={{ width: "48px", minWidth: "48px", background: "#8B1A1A", flexShrink: 0 }} />
+              {/* Contenido */}
+              <div className="flex flex-col flex-1 p-8 min-w-0" style={{ minHeight: "297mm" }}>
 
                 {/* Cabecera */}
                 <div className="flex justify-between items-start mb-3">
