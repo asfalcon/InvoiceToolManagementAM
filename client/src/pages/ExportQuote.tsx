@@ -126,7 +126,7 @@ export default function ExportQuote() {
               className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-row font-sans overflow-hidden"
             >
               {/* Franja lateral izquierda */}
-              <div style={{ width: "48px", minWidth: "48px", background: "#B2D3C2", flexShrink: 0 }} />
+              <div style={{ width: "48px", minWidth: "48px", background: "#B2D3C2", flexShrink: 0, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
               {/* Contenido */}
               <div className="flex flex-col flex-1 p-10 min-w-0">
               {/* Header */}
@@ -258,7 +258,7 @@ export default function ExportQuote() {
               className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-row"
             >
               {/* Franja lateral izquierda */}
-              <div style={{ width: "48px", minWidth: "48px", background: "#8B1A1A", flexShrink: 0 }} />
+              <div style={{ width: "48px", minWidth: "48px", background: "#8B1A1A", flexShrink: 0, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
               {/* Contenido */}
               <div className="flex flex-col flex-1 p-8 min-w-0" style={{ minHeight: "297mm" }}>
 
