@@ -123,12 +123,11 @@ export default function ExportQuote() {
           {!isCompany2 && (
             <div
               ref={quoteRef}
-              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] flex flex-row font-sans overflow-hidden"
+              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden"
+              style={{ borderLeft: "28px solid #B2D3C2" }}
             >
-              {/* Franja lateral izquierda */}
-              <div style={{ width: "28px", minWidth: "28px", background: "#B2D3C2", flexShrink: 0, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
               {/* Contenido */}
-              <div className="flex flex-col flex-1 p-10 min-w-0">
+              <div className="flex flex-col h-full p-10">
               {/* Header */}
               <div className="flex justify-between items-start mb-5">
                 <div className="w-[48%]">
@@ -255,12 +254,11 @@ export default function ExportQuote() {
           {isCompany2 && (
             <div
               ref={quoteRef}
-              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden flex flex-row"
+              className="bg-white text-slate-900 shadow-xl print:shadow-none w-[210mm] min-h-[297mm] max-h-[297mm] text-[11px] font-sans overflow-hidden"
+              style={{ borderLeft: "28px solid #8B1A1A" }}
             >
-              {/* Franja lateral izquierda */}
-              <div style={{ width: "28px", minWidth: "28px", background: "#8B1A1A", flexShrink: 0, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
               {/* Contenido */}
-              <div className="flex flex-col flex-1 p-8 min-w-0" style={{ minHeight: "297mm" }}>
+              <div className="flex flex-col h-full p-8" style={{ minHeight: "297mm" }}>
 
                 {/* Cabecera */}
                 <div className="flex justify-between items-start mb-3">
